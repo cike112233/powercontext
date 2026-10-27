@@ -22,8 +22,6 @@ from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
 
-from powercontext.builtin.artifacts.memory.models import MemoryCitation
-from powercontext.builtin.runtime import GetMemoryEntryRequest, SearchMemoryRequest
 from powercontext.limits import MAX_SOURCE_ID_LENGTH
 from powercontext.sources.definitions import AdapterSourceDefinition
 from powercontext.sources.models import Source, SourceMaterialization
@@ -222,7 +220,7 @@ def parse_pdf_document(input_doc: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
     return tuple(pages)
 
 
-async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple[MemoryCitation, ...]:
+async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple:
     """Search for PDF pages relevant to the given question.
 
     Args:
@@ -233,12 +231,15 @@ async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple
     Returns:
         Tuple of MemoryCitation instances for relevant pages
     """
+    from powercontext.builtin.artifacts.memory.models import MemoryCitation
+    from powercontext.builtin.runtime import GetMemoryEntryRequest, SearchMemoryRequest
+
     # Search using Memory API with higher limit to ensure we get enough distinct pages
     search_request = SearchMemoryRequest(query=question, mode="fts", limit=limit * 2)
     page = await memory.search(search_request)
 
     # Collect citations from search results
-    citations: list[MemoryCitation] = []
+    citations: list = []
 
     for hit in page.hits:
         if len(citations) >= limit:
