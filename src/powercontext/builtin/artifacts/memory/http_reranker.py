@@ -86,11 +86,15 @@ class HTTPMemoryReranker:
         all_scores: dict[int, float] = {}
         request_count = 0
 
-        for batch in batches:
+        for batch_idx, batch in enumerate(batches):
             request_count += 1
+            batch_start_rank = batch_idx * self._batch_size + 1
             payload = {
                 "query": query,
-                "candidates": [{"rank": i + 1, "text": hit.text} for i, hit in enumerate(batch, start=1)],
+                "candidates": [
+                    {"rank": batch_start_rank + i, "text": hit.text}
+                    for i, hit in enumerate(batch)
+                ],
             }
 
             try:
@@ -134,10 +138,7 @@ class HTTPMemoryReranker:
                 if math.isnan(score) or math.isinf(score):
                     raise ValueError(f"score must be finite, got {score}")
 
-                # Map batch-local rank to global rank
-                batch_start = batches.index(batch) * self._batch_size + 1
-                global_rank = batch_start + rank - 1
-                all_scores[global_rank] = float(score)
+                all_scores[rank] = float(score)
 
         # Validate we got scores for all candidates
         if set(all_scores.keys()) != set(range(1, len(candidates) + 1)):

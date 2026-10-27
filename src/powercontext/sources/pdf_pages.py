@@ -199,7 +199,7 @@ def parse_pdf_document(input_doc: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
     try:
         for page_num, page in enumerate(reader.pages, start=1):
             try:
-                text = page.extract_text() or ""
+                text = (page.extract_text() or "").strip()
             except Exception as e:
                 raise ValueError(f"Failed to extract text from page {page_num}: {e}") from e
 
