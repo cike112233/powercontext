@@ -166,6 +166,7 @@ from powercontext.builtin.runtime._scope_cache import (
     ScopeCacheObserver,
     ScopeEvictor,
 )
+from powercontext.builtin.runtime.context_pack import ContextPack, ContextPackDelta
 from powercontext.builtin.runtime.decision_model import DecisionModel
 from powercontext.builtin.runtime.errors import InvalidRuntimeRequestError, TopicMemoryProcessingUnavailableError
 from powercontext.builtin.runtime.models import (
@@ -821,6 +822,11 @@ class StatisticsApplication:
         )
 
 
+# Incremental packs chunk per rendered line so a delta only carries newly appended lines;
+# the limit only subdivides single lines longer than this.
+_INCREMENTAL_CHUNK_BYTES = 4096
+
+
 class ScopedContextApplication:
     """Prepare final context for one scope using Runtime-owned source policy."""
 
@@ -846,6 +852,18 @@ class ScopedContextApplication:
             if authorize_scopes is not None:
                 await authorize_scopes((self.scope_id, *scope.context_references))
             return await self._prepare(request, scope)
+
+    async def prepare_incremental(
+        self,
+        request: PrepareContextRequest,
+        base_pack: ContextPack | None = None,
+    ) -> ContextPack | ContextPackDelta:
+        """Prepare this round's context as a pack, or as a delta against a held base pack."""
+        prepared = await self.prepare(request)
+        target = ContextPack.from_content(prepared.content or "", chunk_bytes=_INCREMENTAL_CHUNK_BYTES)
+        if base_pack is None:
+            return target
+        return ContextPackDelta.between(base_pack, target)
 
     async def _prepare(self, request: PrepareContextRequest, scope: ScopeDescriptor, /) -> PreparedContext:
         build, effort = await self._prepare_build(request, scope)
