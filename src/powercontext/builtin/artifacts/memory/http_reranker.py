@@ -122,6 +122,7 @@ class HTTPMemoryReranker:
                 raise ValueError("'scores' must be a list")
 
             # Validate each score entry
+            seen_ranks: set[int] = set()
             for score_entry in scores_list:
                 if not isinstance(score_entry, dict):
                     raise ValueError("Each score entry must be an object")
@@ -133,6 +134,9 @@ class HTTPMemoryReranker:
 
                 if not isinstance(rank, int):
                     raise ValueError(f"rank must be an integer, got {type(rank)}")
+                if rank in seen_ranks:
+                    raise ValueError(f"Duplicate rank in response: {rank}")
+                seen_ranks.add(rank)
                 if not isinstance(score, (int, float)):
                     raise ValueError(f"score must be a number, got {type(score)}")
                 if math.isnan(score) or math.isinf(score):
