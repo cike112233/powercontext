@@ -200,6 +200,8 @@ def parse_csv_document(input_doc: CSVDocumentInput) -> tuple[CSVRowInput, ...]:
         header = next(reader)
     except StopIteration:
         raise ValueError("CSV document is empty")
+    except csv.Error as e:
+        raise ValueError(f"CSV format error in header: {e}") from e
     
     if not header:
         raise ValueError("CSV header is empty")
@@ -224,41 +226,44 @@ def parse_csv_document(input_doc: CSVDocumentInput) -> tuple[CSVRowInput, ...]:
     seen_primary: set[str] = set()
     row_num = 1
     
-    for row in reader:
-        row_num += 1
-        
-        # Skip completely empty rows
-        if not row or all(field == "" for field in row):
-            continue
-        
-        # Validate row width
-        if len(row) != len(header):
-            raise ValueError(
-                f"Row {row_num} has {len(row)} fields, expected {len(header)}"
+    try:
+        for row in reader:
+            row_num += 1
+            
+            # Skip completely empty rows
+            if not row or all(field == "" for field in row):
+                continue
+            
+            # Validate row width
+            if len(row) != len(header):
+                raise ValueError(
+                    f"Row {row_num} has {len(row)} fields, expected {len(header)}"
+                )
+            
+            # Extract and validate primary key value
+            pk_value = row[primary_key_idx]
+            if not pk_value.strip():
+                raise ValueError(f"Row {row_num} has blank primary key value")
+            
+            # Check primary key uniqueness
+            if pk_value in seen_primary:
+                raise ValueError(
+                    f"Row {row_num} has duplicate primary key value: {pk_value}"
+                )
+            seen_primary.add(pk_value)
+            
+            # Build CSVRowInput
+            rows.append(
+                CSVRowInput(
+                    document_id=document_id,
+                    primary_key=primary_key,
+                    primary_key_value=pk_value,
+                    columns=tuple(header),
+                    values=tuple(row),
+                )
             )
-        
-        # Extract and validate primary key value
-        pk_value = row[primary_key_idx]
-        if not pk_value.strip():
-            raise ValueError(f"Row {row_num} has blank primary key value")
-        
-        # Check primary key uniqueness
-        if pk_value in seen_primary:
-            raise ValueError(
-                f"Row {row_num} has duplicate primary key value: {pk_value}"
-            )
-        seen_primary.add(pk_value)
-        
-        # Build CSVRowInput
-        rows.append(
-            CSVRowInput(
-                document_id=document_id,
-                primary_key=primary_key,
-                primary_key_value=pk_value,
-                columns=tuple(header),
-                values=tuple(row),
-            )
-        )
+    except csv.Error as e:
+        raise ValueError(f"CSV format error at row {row_num}: {e}") from e
     
     return tuple(rows)
 

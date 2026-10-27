@@ -215,7 +215,10 @@ def _format_event(record: dict[str, Any]) -> tuple[str, str, str] | None:
             return (event_type, role, f"{role}: {body}")
 
         else:
-            return _format_message_content(role, message) if message else None
+            result = _format_message_content(role, message)
+            if result is None:
+                return None
+            return (event_type, role, result)
 
     elif event_type == "compaction":
         summary = record.get("summary", "")
