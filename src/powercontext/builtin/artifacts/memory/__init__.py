@@ -39,6 +39,7 @@ from powercontext.builtin.artifacts.memory.extraction import (
     MemoryExtractionIntent,
     MemoryExtractionOutput,
 )
+from powercontext.builtin.artifacts.memory.http_reranker import HTTPMemoryReranker
 from powercontext.builtin.artifacts.memory.models import (
     EmbeddingProfile,
     Memory,
@@ -108,6 +109,7 @@ from powercontext.builtin.artifacts.memory.service import MemoryRememberMode, Me
 __all__ = [
     "CONVERSATION_MEMORY_EXTRACTION_INSTRUCTIONS",
     "CONVERSATION_MEMORY_EXTRACTION_INSTRUCTIONS_VERSION",
+    "HTTPMemoryReranker",
     "MEMORY_EXTRACTION_INSTRUCTIONS",
     "MEMORY_EXTRACTION_INSTRUCTIONS_VERSION",
     "MEMORY_RERANK_INSTRUCTIONS",
