@@ -25,8 +25,9 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, JsonValue, field_validator
 
 from powercontext.limits import MAX_SOURCE_ID_LENGTH
-from powercontext.sources import TEXT_EVIDENCE_PROJECTION_KEY, AdapterSourceDefinition, TextEvidence
+from powercontext.sources.definitions import AdapterSourceDefinition
 from powercontext.sources.models import Source, SourceMaterialization
+from powercontext.sources.projections import TEXT_EVIDENCE_PROJECTION_KEY, TextEvidence
 
 CSV_ROW_SOURCE_NAME = "csv-row"
 
