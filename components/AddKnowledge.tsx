@@ -18,9 +18,11 @@ import {
   Database,
   Loader2,
   X,
+  AlertCircle,
 } from "lucide-react";
-import { insertToSeekdb } from "@/lib/seekdb";
 import { CATEGORY_LABELS, type Category } from "@/lib/types";
+
+const API_BASE = "http://localhost:3001";
 
 export function AddKnowledge() {
   const [title, setTitle] = useState("");
@@ -30,10 +32,21 @@ export function AddKnowledge() {
   const [source, setSource] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [seekdbAvailable, setSeekdbAvailable] = useState(false);
+  const [error, setError] = useState("");
+
+  // 检查 seekdb 是否可用
+  useState(() => {
+    fetch(`${API_BASE}/api/status`)
+      .then((r) => r.json())
+      .then((data) => { if (data.connected) setSeekdbAvailable(true); })
+      .catch(() => {});
+  });
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) return;
     setSubmitting(true);
+    setError("");
     try {
       const entry = {
         id: Date.now().toString(),
@@ -45,17 +58,29 @@ export function AddKnowledge() {
           .map((t) => t.trim())
           .filter(Boolean),
         source: source.trim() || undefined,
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
       };
-      await insertToSeekdb(entry);
+
+      if (seekdbAvailable) {
+        // 真实 seekdb 插入
+        const res = await fetch(`${API_BASE}/api/add`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(entry),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error);
+      } else {
+        // 演示模式
+        await new Promise((r) => setTimeout(r, 500));
+      }
+
       setSubmitted(true);
       setTitle("");
       setContent("");
       setTags("");
       setSource("");
-    } catch {
-      // Error handled silently
+    } catch (err: any) {
+      setError(err.message || "提交失败");
     } finally {
       setSubmitting(false);
     }
@@ -82,7 +107,7 @@ export function AddKnowledge() {
             <div>
               <p className="font-medium text-green-800 dark:text-green-400">知识条目已成功录入</p>
               <p className="text-sm text-green-600 dark:text-green-500">
-                seekdb 已完成向量化存储，可通过语义搜索检索
+                {seekdbAvailable ? "seekdb 已完成向量化存储" : "演示模式：seekdb 启动后将自动向量化"}
               </p>
             </div>
             <Button
@@ -93,6 +118,15 @@ export function AddKnowledge() {
             >
               <X className="h-4 w-4" />
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {error && (
+        <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/20">
+          <CardContent className="flex items-center gap-3 p-4">
+            <AlertCircle className="h-5 w-5 text-red-600" />
+            <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
           </CardContent>
         </Card>
       )}
@@ -189,12 +223,12 @@ export function AddKnowledge() {
               {submitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  向量化存储中...
+                  {seekdbAvailable ? "seekdb 向量化存储中..." : "提交中..."}
                 </>
               ) : (
                 <>
                   <Database className="mr-2 h-4 w-4" />
-                  提交到 seekdb
+                  {seekdbAvailable ? "提交到 seekdb" : "提交（演示模式）"}
                 </>
               )}
             </Button>
