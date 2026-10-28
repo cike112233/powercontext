@@ -136,8 +136,17 @@ export function SearchPage() {
   const [seekdbStatus, setSeekdbStatus] = useState<SeekdbStatus | null>(null);
   const [mode, setMode] = useState<"live" | "demo">("demo");
 
-  // 检查 seekdb 连接状态 - 带 2 秒超时，避免在发布站点上长时间挂起
+  // 检查 seekdb 连接状态 - 仅在本地开发时检查，避免在发布站点上产生控制台错误
   useEffect(() => {
+    // 只在 localhost 或 127.0.0.1 上检查 seekdb 连接
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1';
+    
+    if (!isLocalhost) {
+      setMode("demo");
+      return;
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
 

@@ -35,8 +35,15 @@ export function AddKnowledge() {
   const [seekdbAvailable, setSeekdbAvailable] = useState(false);
   const [error, setError] = useState("");
 
-  // 检查 seekdb 是否可用
+  // 检查 seekdb 是否可用 - 仅在本地开发时检查
   useEffect(() => {
+    const isLocalhost = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1';
+    
+    if (!isLocalhost) {
+      return;
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
 
