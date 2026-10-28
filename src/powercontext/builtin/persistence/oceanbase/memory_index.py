@@ -100,17 +100,10 @@ LIMIT :candidate_limit
 """
 
 # Hybrid search: a single UNION ALL combining FTS and vector candidate retrieval.
-# Each branch scans its own index; the outer query applies a shared LIMIT.
-# The database planner can use TEXT RETRIEVAL SCAN on the FTS branch and
-# VECTOR INDEX on the vector branch within a single statement.
-_HYBRID_SELECT_COLUMNS = """\
-    memory_artifact_id,
-    head_revision,
-    entry_id,
-    entry_version_id,
-    text,
-    distance,
-    _channel"""
+# Each branch scans its own index; the database planner can use TEXT RETRIEVAL SCAN
+# on the FTS branch and VECTOR INDEX on the vector branch within one statement.
+# No outer wrapper: each branch's ORDER BY + LIMIT is preserved by the engine,
+# and the application-layer RRF fusion re-ranks the combined candidates.
 
 _HYBRID_FTS_BRANCH = """\
 SELECT
@@ -158,7 +151,12 @@ LIMIT :candidate_limit"""
 
 
 def _build_hybrid_sql(*, tagged: bool) -> str:
-    """Build the native hybrid SQL, optionally with tag-filter predicates."""
+    """Build the native hybrid SQL, optionally with tag-filter predicates.
+
+    The two branches are combined via UNION ALL without an outer wrapper so
+    that each branch's ORDER BY + LIMIT is preserved by the database planner.
+    The application-layer RRF fusion re-ranks the combined candidates.
+    """
     tag_sql_f = memory_tag_sql("f") if tagged else ""
     tag_sql_m = memory_tag_sql("m") if tagged else ""
     fts_branch = _HYBRID_FTS_BRANCH.format(tag_sql=tag_sql_f)
@@ -166,12 +164,7 @@ def _build_hybrid_sql(*, tagged: bool) -> str:
         tag_sql=tag_sql_m,
         approx="" if tagged else " APPROXIMATE",
     )
-    return (
-        f"SELECT {_HYBRID_SELECT_COLUMNS}\n"
-        f"FROM (\n{fts_branch}\nUNION ALL\n{vector_branch}\n) AS _hybrid\n"
-        f"ORDER BY distance ASC, memory_artifact_id, entry_id, entry_version_id\n"
-        f"LIMIT :candidate_limit"
-    )
+    return f"{fts_branch}\nUNION ALL\n{vector_branch}"
 
 
 class OceanBaseMemoryFTSIndex:
