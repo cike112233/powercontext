@@ -272,8 +272,21 @@ _EXPANSIONS: dict[str, tuple[str, ...]] = {
     "capex": ("capital", "expenditures"),
     "ebitda": ("operating", "profit", "income", "depreciation", "amortization"),
     "restructuring": ("charges", "impairment"),
-    "revenue": ("sales",),
+    "revenue": ("sales", "revenues"),
     "sales": ("revenue",),
+    "quick": ("current", "assets", "liabilities", "cash", "inventories", "receivables"),
+    "ratio": ("current", "assets", "liabilities", "margin", "percentage"),
+    "liquidity": ("cash", "current", "assets", "liabilities", "balance"),
+    "margin": ("operating", "gross", "income", "profit", "revenue"),
+    "operating": ("income", "profit", "margin", "expenses"),
+    "gross": ("profit", "margin", "revenue"),
+    "concentration": ("customer", "accounted", "percent", "revenue"),
+    "customer": ("customers", "concentration", "accounted"),
+    "liability": ("liabilities", "balance", "sheet"),
+    "liabilities": ("liability", "balance", "sheet"),
+    "retain": ("retention", "customers", "members", "renew"),
+    "retention": ("retain", "customers", "members"),
+    "change": ("increase", "decrease", "drove", "results"),
 }
 
 # Phrases that identify the section a finance question usually targets.
@@ -282,11 +295,23 @@ _PHRASES: tuple[tuple[str, ...], ...] = (
     ("cash", "flows"),
     ("cash", "flow"),
     ("statement", "of", "income"),
+    ("statements", "of", "income"),
     ("operating", "profit"),
     ("countries", "and", "territories"),
     ("depreciation", "and", "amortization"),
     ("income", "statement"),
     ("capital", "expenditures"),
+    ("consolidated", "balance", "sheets"),
+    ("results", "of", "operations"),
+    ("business", "environment"),
+    ("one", "customer", "accounted"),
+    ("current", "assets"),
+    ("current", "liabilities"),
+    ("securities", "registered"),
+    ("securities", "registered", "pursuant"),
+    ("income", "tax"),
+    ("effective", "tax"),
+    ("title", "of", "each", "class"),
 )
 
 _HEADINGS: tuple[str, ...] = (
@@ -295,6 +320,37 @@ _HEADINGS: tuple[str, ...] = (
     "consolidated statements of income",
     "consolidated statement of cash flows",
     "consolidated statements of cash flows",
+    "consolidated balance sheets",
+    "consolidated balance sheet",
+    "consolidated statements of operations",
+    "consolidated statement of operations",
+    "managements discussion and analysis",
+    "management's discussion and analysis",
+    "results of operations",
+    "business environment",
+    "summary of financial performance",
+    "securities registered pursuant",
+)
+
+# Question-shape hints: if all trigger terms occur, add a targeted query.
+_QUERY_HINTS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
+    (
+        ("quick", "ratio"),
+        ("current", "assets", "current", "liabilities", "balance", "sheets", "cash", "inventories", "receivables"),
+    ),
+    (("liquidity",), ("cash", "current", "assets", "current", "liabilities", "balance", "sheets")),
+    (
+        ("operating", "margin"),
+        ("consolidated", "statements", "income", "operating", "income", "revenues", "results", "operations"),
+    ),
+    (("gross", "margin"), ("consolidated", "statements", "income", "gross", "profit", "revenues")),
+    (("largest", "liability"), ("consolidated", "balance", "sheets", "total", "liabilities")),
+    (
+        ("retain",),
+        ("business", "environment", "customers", "card", "members", "acquisitions", "relationships"),
+    ),
+    (("drove",), ("results", "operations", "management", "discussion", "analysis", "increase", "decrease")),
+    (("concentration",), ("customer", "accounted", "percent", "revenue")),
 )
 
 _TOKEN_PATTERN = re.compile(r"[a-z]+|\d+")
@@ -335,6 +391,15 @@ def _query_keywords(question: str) -> tuple[str, ...]:
     return tuple(keywords)
 
 
+def _matched_hint_terms(question: str) -> tuple[str, ...]:
+    terms = set(_tokenize(question))
+    matched: list[str] = []
+    for triggers, hints in _QUERY_HINTS:
+        if all(term in terms for term in triggers):
+            matched.extend(hints)
+    return tuple(dict.fromkeys(matched))
+
+
 def _query_variants(question: str, keywords: tuple[str, ...]) -> tuple[str, ...]:
     """Full question plus tight keyword, stemmed, and domain-expanded queries."""
     variants: list[str] = [question]
@@ -356,6 +421,9 @@ def _query_variants(question: str, keywords: tuple[str, ...]) -> tuple[str, ...]
         synonym_query = " ".join(dict.fromkeys(synonyms[:12]))
         if synonym_query:
             variants.append(synonym_query)
+    hint_query = " ".join(_matched_hint_terms(question))
+    if hint_query:
+        variants.append(hint_query)
     return tuple(dict.fromkeys(variant.strip() for variant in variants if variant.strip()))
 
 
@@ -400,7 +468,7 @@ async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple
     if not candidates:
         return ()
 
-    query_terms = set(keywords)
+    query_terms = set(keywords) | set(_matched_hint_terms(question))
     for term in keywords:
         query_terms.update(_EXPANSIONS.get(term, ()))
     stemmed_terms = {_stem(term) for term in query_terms}
@@ -416,13 +484,23 @@ async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple
         number_overlap = len(numeric_terms & page_terms)
         phrase_hits = sum(1 for phrase in _PHRASES if _contains_phrase(page_tokens, phrase))
         normalized = " ".join(hit.text.casefold().split())
+        prefix = normalized[:180]
         heading_hits = sum(1 for heading in _HEADINGS if heading in normalized)
+        heading_start_hits = sum(1 for heading in _HEADINGS if heading in prefix)
+        numeric_count = sum(1 for token in page_tokens if token.isdigit())
+        numeric_ratio = numeric_count / max(1, len(page_tokens))
+        toc_penalty = 50.0 if "index to consolidated financial statements" in normalized else 0.0
+        auditor_penalty = 10.0 if "report of independent registered public accounting firm" in prefix else 0.0
         score = (
             overlap * 3.0
             + stem_overlap * 2.0
             + number_overlap * 3.0
             + phrase_hits * 8.0
-            + heading_hits * 12.0
+            + heading_hits * 6.0
+            + heading_start_hits * 20.0
+            + numeric_ratio * 30.0
+            - toc_penalty
+            - auditor_penalty
             + min(max(hit.score, 0.0), 50.0) * 0.1
         )
         scored.append((score, hit))
