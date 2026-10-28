@@ -169,6 +169,7 @@ from powercontext.builtin.runtime._scope_cache import (
 from powercontext.builtin.runtime.context_pack import DEFAULT_CHUNK_BYTES, ContextPack, ContextPackDelta
 from powercontext.builtin.runtime.decision_model import DecisionModel
 from powercontext.builtin.runtime.errors import InvalidRuntimeRequestError, TopicMemoryProcessingUnavailableError
+from powercontext.builtin.runtime.source_lifecycle import LifecycleApplication, SourceLifecycleRepository
 from powercontext.builtin.runtime.models import (
     ApproveArtifactCandidateRequest,
     CaptureSource,
@@ -2686,6 +2687,11 @@ class ScopedTopicMemoryApplication:
                     query_embedding,
                     embedding_timeout_seconds,
                 )
+        hidden = await self._runtime._hidden_topic_artifact_ids(self.scope_id)
+        if hidden:
+            result = result.model_copy(
+                update={"hits": tuple(hit for hit in result.hits if hit.artifact_ref.artifact_id not in hidden)}
+            )
         observer = self._runtime._topic_memory_search_observer
         if observer is not None:
             try:
@@ -2797,7 +2803,11 @@ class ScopedTopicMemoryApplication:
         if not 1 <= limit <= 100:
             raise InvalidRuntimeRequestError("topic-memory-browse-limit")
         async with self._runtime._scoped_operation(self.scope_id):
-            return await self._runtime._topic_memory_browse(self.scope_id, limit=limit, after=after)
+            items = await self._runtime._topic_memory_browse(self.scope_id, limit=limit, after=after)
+        hidden = await self._runtime._hidden_topic_artifact_ids(self.scope_id)
+        if not hidden:
+            return items
+        return tuple(item for item in items if item.artifact_ref.artifact_id not in hidden)
 
     async def flush(self) -> TopicMemoryFlushResult:
         if not self._runtime._topic_memory_processing_available or self._runtime._topic_memory_flush is None:
@@ -3130,6 +3140,8 @@ class BuiltinRuntime:
         self.memory = MemoryApplication(self)
         self.topic_memory = TopicMemoryApplication(self)
         self.records = RecordApplication(self)
+        self.lifecycle = LifecycleApplication(self)
+        self._source_lifecycle = SourceLifecycleRepository()
         self.prompts = PromptApplication(self)
         self.review = ReviewApplication(self)
         self.skill = SkillApplication(self)
@@ -3416,6 +3428,12 @@ class BuiltinRuntime:
         finally:
             if acquired:
                 lock.release()
+
+    async def _hidden_topic_artifact_ids(self, scope_id: str, /) -> frozenset[str]:
+        """Topic artifacts whose lifecycle support is currently withdrawn."""
+
+        async with self._provider.database.transaction() as connection:
+            return await self._source_lifecycle.hidden_topic_artifact_ids(connection, validate_scope_id(scope_id))
 
     def _stage(
         self,
