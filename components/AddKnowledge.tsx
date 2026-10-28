@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,12 +36,22 @@ export function AddKnowledge() {
   const [error, setError] = useState("");
 
   // 检查 seekdb 是否可用
-  useState(() => {
-    fetch(`${API_BASE}/api/status`)
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+    fetch(`${API_BASE}/api/status`, { signal: controller.signal })
       .then((r) => r.json())
-      .then((data) => { if (data.connected) setSeekdbAvailable(true); })
-      .catch(() => {});
-  });
+      .then((data) => {
+        clearTimeout(timeoutId);
+        if (data.connected) setSeekdbAvailable(true);
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+      });
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) return;
