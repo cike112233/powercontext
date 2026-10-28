@@ -47,6 +47,7 @@ else:
     from multiprocessing.popen_spawn_posix import Popen as SpawnPopen
 
 from powercontext._logging import log_safely
+from powercontext.builtin.persistence.cursors import SourceCursorRepository
 from powercontext.builtin.persistence.database import AsyncDatabase
 from powercontext.builtin.persistence.errors import ArtifactProcessingLeadershipLostError
 from powercontext.builtin.persistence.processing_intents import ArtifactProcessingIntentRepository
@@ -57,7 +58,11 @@ from powercontext.builtin.persistence.supervision import (
     ArtifactProcessingLeaseRepository,
     database_utc_now,
 )
-from powercontext.builtin.persistence.tables import ARTIFACT_PROCESSING_INTENTS_TABLE, ARTIFACT_PROCESSING_LEASES_TABLE
+from powercontext.builtin.persistence.tables import (
+    ARTIFACT_PROCESSING_INTENTS_TABLE,
+    ARTIFACT_PROCESSING_LEASES_TABLE,
+    SOURCE_JOURNAL_HEADS_TABLE,
+)
 from powercontext.builtin.runtime.processing_contracts import (
     ArtifactProcessingWorkAssignment,
     ArtifactProcessingWorkerCompletion,
@@ -114,6 +119,7 @@ class ArtifactProcessingBinding:
     timezone: str = "Asia/Shanghai"
     config_prefix: str | None = None
     pending_provider: ArtifactProcessingPendingProvider | None = None
+    source_count_threshold: int | None = None
     # Only automatic admission is filtered; already accepted requests retain
     # their own Worker authorization and domain completion semantics.
     automatic_scope_filter: Callable[[AsyncConnection, tuple[str, ...]], Awaitable[frozenset[str]]] | None = None
@@ -131,6 +137,10 @@ class ArtifactProcessingBinding:
             raise ValueError("max_workers must be a positive integer")  # noqa: TRY003
         if self.worker_timeout_seconds <= 0:
             raise ValueError("worker_timeout_seconds must be positive")  # noqa: TRY003
+        if self.source_count_threshold is not None and (
+            type(self.source_count_threshold) is not int or self.source_count_threshold < 1
+        ):
+            raise ValueError("source_count_threshold must be a positive integer")  # noqa: TRY003
         if self.automatic_processing_interval is not None:
             if self.automatic_processing_interval.total_seconds() <= 0:
                 raise ValueError("automatic interval must be positive")  # noqa: TRY003
@@ -397,6 +407,7 @@ class _FamilyState:
     scan_in_progress: bool = False
     reconcile_after: str | None = None
     reconcile_complete: bool = False
+    count_after: str | None = None
     notification_at_start: int = 0
     discovery_pending: bool = True
     next_schedule_at: float | None = None
@@ -639,6 +650,7 @@ class ArtifactProcessingSupervisor:
     async def _discover(self, state: _FamilyState) -> None:
         binding = state.binding
         loop = asyncio.get_running_loop()
+        await self._discover_count(state)
         if not state.reconcile_complete and binding.pending_provider is not None:
             state.reconcile_after = await binding.pending_provider.reconcile(
                 state.reconcile_after, _DISCOVERY_PAGE_SIZE, fence=self._require_current_fence()
@@ -656,6 +668,45 @@ class ArtifactProcessingSupervisor:
         else:
             await self._discover_requested(state)
             await self._discover_automatic(state)
+
+    async def _discover_count(self, state: _FamilyState) -> None:
+        """Request one invocation for Scopes whose persisted Source backlog reached the threshold.
+
+        The backlog is the journal identity count between the Family's last successful cursor and
+        the current journal head, so duplicate captures and receipt trust upgrades add nothing and
+        lineage-only Sources still count. Requesting reuses the explicit-flush admission channel,
+        which is independent of the time schedule, so the count condition ORs with time.
+        """
+
+        threshold = state.binding.source_count_threshold
+        if threshold is None:
+            return
+        if self._fresh_capacity(state) <= 0:
+            return
+        heads = SOURCE_JOURNAL_HEADS_TABLE
+        statement = select(heads.c.scope_id, heads.c.position).order_by(heads.c.scope_id).limit(_DISCOVERY_PAGE_SIZE)
+        if state.count_after is not None:
+            statement = statement.where(heads.c.scope_id > state.count_after)
+        requested = False
+        async with self._database.transaction() as connection:
+            await self._leases.require_fence(connection, self._require_current_fence())
+            rows = (await connection.execute(statement)).all()
+            cursors = SourceCursorRepository()
+            for scope, high in rows:
+                if scope in state.running or scope in state.queued or scope in state.retries:
+                    continue
+                cursor = await cursors.load(connection, scope, state.binding.binding_name)
+                pending = int(high) - (0 if cursor is None else cursor.cursor.sequence)
+                if pending < threshold:
+                    continue
+                intent = await self._intents.load(connection, scope, state.binding.binding_name, for_update=True)
+                if intent is not None and intent.requested_generation != intent.handled_generation:
+                    continue  # an invocation is already outstanding for this Scope
+                await self._intents.request(connection, scope, state.binding.binding_name)
+                requested = True
+            state.count_after = str(rows[-1][0]) if len(rows) == _DISCOVERY_PAGE_SIZE else None
+        if requested:
+            state.discovery_pending = True
 
     async def _discover_requested(self, state: _FamilyState) -> None:
         capacity = self._fresh_capacity(state)
@@ -1093,6 +1144,10 @@ class ArtifactProcessingSupervisor:
                 continue
             if state.next_schedule_at is not None:
                 deadlines.append(state.next_schedule_at)
+            if state.binding.source_count_threshold is not None:
+                # Count admission has no schedule deadline of its own; keep ticking so a
+                # backlog that crosses the threshold is noticed without new input or a wake.
+                deadlines.append(now + self._tick)
             if state.discovery_pending or state.scan_in_progress or not state.reconcile_complete or state.degraded:
                 deadlines.append(max(now, state.next_discovery_at))
         return None if not deadlines else max(0.001, min(deadlines) - now)
