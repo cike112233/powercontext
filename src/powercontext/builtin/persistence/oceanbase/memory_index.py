@@ -37,6 +37,7 @@ from powercontext.builtin.artifacts.memory import (
     CapabilityNotSupportedError,
     EmbeddingProfile,
     MemoryCapabilities,
+    MemoryChannelHit,
     MemoryProjection,
     MemorySearchChannels,
     MemorySearchRequest,
@@ -97,6 +98,80 @@ WHERE m.scope_id = :scope_id
 ORDER BY l2_distance(m.embedding, :query_vector) APPROXIMATE
 LIMIT :candidate_limit
 """
+
+# Hybrid search: a single UNION ALL combining FTS and vector candidate retrieval.
+# Each branch scans its own index; the outer query applies a shared LIMIT.
+# The database planner can use TEXT RETRIEVAL SCAN on the FTS branch and
+# VECTOR INDEX on the vector branch within a single statement.
+_HYBRID_SELECT_COLUMNS = """\
+    memory_artifact_id,
+    head_revision,
+    entry_id,
+    entry_version_id,
+    text,
+    distance,
+    _channel"""
+
+_HYBRID_FTS_BRANCH = """\
+SELECT
+    f.memory_artifact_id,
+    f.head_revision,
+    f.entry_id,
+    f.entry_version_id,
+    v.text,
+    NULL AS distance,
+    'fts' AS _channel
+FROM pc_memory_entry_heads AS f
+JOIN pc_memory_entry_versions AS v
+  ON v.scope_id = f.scope_id
+ AND v.memory_artifact_id = f.memory_artifact_id
+ AND v.entry_version_id = f.entry_version_id
+WHERE f.scope_id = :scope_id
+  AND f.memory_artifact_id IN :memory_artifact_ids
+  AND MATCH (f.searchable_text) AGAINST (:query)
+{tag_sql}\
+ORDER BY MATCH (f.searchable_text) AGAINST (:query) DESC,
+         f.memory_artifact_id,
+         f.entry_id,
+         f.entry_version_id
+LIMIT :candidate_limit"""
+
+_HYBRID_VECTOR_BRANCH = """\
+SELECT
+    m.memory_artifact_id,
+    m.head_revision,
+    m.entry_id,
+    m.entry_version_id,
+    v.text,
+    l2_distance(m.embedding, :query_vector) AS distance,
+    'vector' AS _channel
+FROM pc_memory_vector_entries AS m
+JOIN pc_memory_entry_versions AS v
+  ON v.scope_id = m.scope_id
+ AND v.memory_artifact_id = m.memory_artifact_id
+ AND v.entry_version_id = m.entry_version_id
+WHERE m.scope_id = :scope_id
+  AND m.memory_artifact_id IN :memory_artifact_ids
+{tag_sql}\
+ORDER BY l2_distance(m.embedding, :query_vector){approx}
+LIMIT :candidate_limit"""
+
+
+def _build_hybrid_sql(*, tagged: bool) -> str:
+    """Build the native hybrid SQL, optionally with tag-filter predicates."""
+    tag_sql_f = memory_tag_sql("f") if tagged else ""
+    tag_sql_m = memory_tag_sql("m") if tagged else ""
+    fts_branch = _HYBRID_FTS_BRANCH.format(tag_sql=tag_sql_f)
+    vector_branch = _HYBRID_VECTOR_BRANCH.format(
+        tag_sql=tag_sql_m,
+        approx="" if tagged else " APPROXIMATE",
+    )
+    return (
+        f"SELECT {_HYBRID_SELECT_COLUMNS}\n"
+        f"FROM (\n{fts_branch}\nUNION ALL\n{vector_branch}\n) AS _hybrid\n"
+        f"ORDER BY distance ASC, memory_artifact_id, entry_id, entry_version_id\n"
+        f"LIMIT :candidate_limit"
+    )
 
 
 class OceanBaseMemoryFTSIndex:
@@ -285,6 +360,19 @@ class OceanBaseMemoryVectorIndex:
             bindparam("tag_hashes", expanding=True),
             bindparam("query_vector", type_=VECTOR(profile.dimension)),
         )
+        # Hybrid: single SQL combining FTS and vector via UNION ALL.
+        self._hybrid_sql = _build_hybrid_sql(tagged=False)
+        self._hybrid_sql_text = text(self._hybrid_sql).bindparams(
+            bindparam("memory_artifact_ids", expanding=True),
+            bindparam("query_vector", type_=VECTOR(profile.dimension)),
+        )
+        self._tagged_hybrid_sql = _build_hybrid_sql(tagged=True)
+        self._tagged_hybrid_sql_text = text(self._tagged_hybrid_sql).bindparams(
+            bindparam("memory_artifact_ids", expanding=True),
+            bindparam("tag_keys", expanding=True),
+            bindparam("tag_hashes", expanding=True),
+            bindparam("query_vector", type_=VECTOR(profile.dimension)),
+        )
 
     async def initialize(self, connection: AsyncConnection, /) -> None:
         if connection.dialect.name != "mysql":
@@ -393,6 +481,60 @@ class OceanBaseMemoryVectorIndex:
             )
         ).mappings()
         return MemorySearchChannels(vector=memory_channel_hits(rows, request.memories))
+
+    async def search_hybrid(
+        self,
+        connection: AsyncConnection,
+        scope_id: str,
+        request: MemorySearchRequest,
+        /,
+    ) -> MemorySearchChannels:
+        """Execute a single native SQL combining FTS and vector candidate retrieval.
+
+        The UNION ALL lets the database planner use TEXT RETRIEVAL SCAN on the
+        FTS branch and VECTOR INDEX on the vector branch within one statement,
+        which is what the hybrid-search challenge requires.
+        """
+        if request.embedding_profile != self.profile or request.query_vector is None:
+            raise CapabilityNotSupportedError("embedding-profile")
+        if not await self.vector_complete(connection, scope_id, request.memories, self.profile):
+            raise CapabilityNotSupportedError("vector")
+        sql = self._hybrid_sql_text if request.tag_filter is None else self._tagged_hybrid_sql_text
+        rows = (
+            await connection.execute(
+                sql,
+                {
+                    "scope_id": scope_id,
+                    "query": request.analyzed_query,
+                    "memory_artifact_ids": tuple(memory.artifact_id for memory in request.memories),
+                    "query_vector": validate_embedding(
+                        request.query_vector,
+                        dimension=self.profile.dimension,
+                    ),
+                    "candidate_limit": request.candidate_limit,
+                    **memory_tag_parameters(request.tag_filter),
+                },
+            )
+        ).mappings()
+        fts_hits: list[MemoryChannelHit] = []
+        vector_hits: list[MemoryChannelHit] = []
+        requested = {memory.artifact_id: memory for memory in request.memories}
+        for row in rows:
+            artifact_id = str(row["memory_artifact_id"])
+            if artifact_id not in requested:
+                continue
+            hit = MemoryChannelHit(
+                memory_ref=requested[artifact_id],
+                entry_id=str(row["entry_id"]),
+                entry_version_id=str(row["entry_version_id"]),
+                text=str(row["text"]),
+                distance=None if row.get("distance") is None else float(row["distance"]),
+            )
+            if row["_channel"] == "fts":
+                fts_hits.append(hit)
+            else:
+                vector_hits.append(hit)
+        return MemorySearchChannels(fts=tuple(fts_hits), vector=tuple(vector_hits))
 
     async def vector_complete(
         self,

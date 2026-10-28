@@ -247,6 +247,13 @@ class CompositeMemoryIndex:
         request: MemorySearchRequest,
         /,
     ) -> MemorySearchChannels:
+        # Hybrid mode: delegate to a single native SQL if any vector index supports it,
+        # avoiding two separate queries (one FTS, one vector) for the same request.
+        if request.mode == "hybrid":
+            for index in self.indexes:
+                search_hybrid = getattr(index, "search_hybrid", None)
+                if search_hybrid is not None:
+                    return await search_hybrid(connection, scope_id, request)
         fts: tuple[MemoryChannelHit, ...] = ()
         vector: tuple[MemoryChannelHit, ...] = ()
         for index in self.indexes:
