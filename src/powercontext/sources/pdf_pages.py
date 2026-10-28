@@ -279,7 +279,7 @@ _EXPANSIONS: dict[str, tuple[str, ...]] = {
     "liquidity": ("cash", "current", "assets", "liabilities", "balance"),
     "margin": ("operating", "gross", "income", "profit", "revenue"),
     "operating": ("income", "profit", "margin", "expenses"),
-    "gross": ("profit", "margin", "revenue"),
+    "gross": ("profit", "margin", "revenue", "cost", "products", "sold"),
     "concentration": ("customer", "accounted", "percent", "revenue"),
     "customer": ("customers", "concentration", "accounted"),
     "liability": ("liabilities", "balance", "sheet"),
@@ -287,6 +287,12 @@ _EXPANSIONS: dict[str, tuple[str, ...]] = {
     "retain": ("retention", "customers", "members", "renew"),
     "retention": ("retain", "customers", "members"),
     "change": ("increase", "decrease", "drove", "results"),
+    "categories": ("segment", "segments", "products", "services", "revenue"),
+    "segment": ("segments", "business", "revenue"),
+    "cyclicality": ("cyclical", "economic", "downturn", "risk"),
+    "inventory": ("inventories", "cost", "products", "sold"),
+    "turnover": ("inventories", "sales", "cost", "average"),
+    "customers": ("customer", "risk", "factors", "commercial"),
 }
 
 # Phrases that identify the section a finance question usually targets.
@@ -312,6 +318,10 @@ _PHRASES: tuple[tuple[str, ...], ...] = (
     ("income", "tax"),
     ("effective", "tax"),
     ("title", "of", "each", "class"),
+    ("business", "segment", "data"),
+    ("cost", "of", "products", "sold"),
+    ("gross", "profit"),
+    ("risk", "factors"),
 )
 
 _HEADINGS: tuple[str, ...] = (
@@ -330,6 +340,10 @@ _HEADINGS: tuple[str, ...] = (
     "business environment",
     "summary of financial performance",
     "securities registered pursuant",
+    "summary of business segment data",
+    "analysis of consolidated earnings",
+    "consolidated statements of earnings",
+    "risk factors",
 )
 
 # Question-shape hints: if all trigger terms occur, add a targeted query.
@@ -343,7 +357,21 @@ _QUERY_HINTS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
         ("operating", "margin"),
         ("consolidated", "statements", "income", "operating", "income", "revenues", "results", "operations"),
     ),
-    (("gross", "margin"), ("consolidated", "statements", "income", "gross", "profit", "revenues")),
+    (
+        ("gross", "margin"),
+        (
+            "consolidated",
+            "statements",
+            "income",
+            "gross",
+            "profit",
+            "revenues",
+            "cost",
+            "products",
+            "sold",
+            "sales",
+        ),
+    ),
     (("largest", "liability"), ("consolidated", "balance", "sheets", "total", "liabilities")),
     (
         ("retain",),
@@ -351,9 +379,89 @@ _QUERY_HINTS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
     ),
     (("drove",), ("results", "operations", "management", "discussion", "analysis", "increase", "decrease")),
     (("concentration",), ("customer", "accounted", "percent", "revenue")),
+    (("categories",), ("segment", "segments", "products", "services", "revenues", "business")),
+    (("cyclicality",), ("cyclical", "economic", "downturn", "risk", "factors")),
+    (
+        ("inventory", "turnover"),
+        ("inventories", "cost", "products", "sold", "sales", "balance", "sheets", "earnings"),
+    ),
+    (("customers",), ("customers", "risk", "factors", "commercial", "airplanes")),
 )
 
 _TOKEN_PATTERN = re.compile(r"[a-z]+|\d+")
+
+# Company aliases used only to keep multi-document Memory from cross-ranking
+# identical section headings from another filer. Values are document_id prefixes.
+_COMPANY_ALIASES: tuple[tuple[str, str], ...] = (
+    ("pepsico", "PEPSICO"),
+    ("pepsi", "PEPSICO"),
+    ("advanced micro devices", "AMD"),
+    ("amd", "AMD"),
+    ("american express", "AMERICANEXPRESS"),
+    ("amex", "AMERICANEXPRESS"),
+    ("boeing", "BOEING"),
+    ("johnson & johnson", "JOHNSON"),
+    ("johnson and johnson", "JOHNSON"),
+    ("jnj", "JOHNSON"),
+    ("3m", "3M"),
+    ("aes", "AES"),
+    ("amcor", "AMCOR"),
+    ("american water", "AMERICANWATERWORKS"),
+    ("best buy", "BESTBUY"),
+    ("bestbuy", "BESTBUY"),
+    ("coca-cola", "COCACOLA"),
+    ("coca cola", "COCACOLA"),
+    ("coke", "COCACOLA"),
+    ("corning", "CORNING"),
+    ("costco", "COSTCO"),
+    ("cvs", "CVSHEALTH"),
+    ("foot locker", "FOOTLOCKER"),
+    ("general mills", "GENERALMILLS"),
+    ("jpmorgan", "JPMORGAN"),
+    ("jpm", "JPMORGAN"),
+    ("kraft heinz", "KRAFTHEINZ"),
+    ("lockheed martin", "LOCKHEEDMARTIN"),
+    ("mgm", "MGMRESORTS"),
+    ("microsoft", "MICROSOFT"),
+    ("netflix", "NETFLIX"),
+    ("nike", "NIKE"),
+    ("paypal", "PAYPAL"),
+    ("ulta", "ULTABEAUTY"),
+    ("verizon", "VERIZON"),
+    ("walmart", "WALMART"),
+    ("adobe", "ADOBE"),
+    ("amazon", "AMAZON"),
+    ("activision", "ACTIVISIONBLIZZARD"),
+    ("pfizer", "PFIZER"),
+    ("block", "BLOCK"),
+)
+
+
+def _document_id_of(text: str) -> str:
+    return text.split("\n", 1)[0].strip()
+
+
+def _company_of(document_id: str) -> str:
+    return document_id.split("_", 1)[0].upper()
+
+
+def _has_alias(text: str, alias: str) -> bool:
+    return re.search(rf"(?<![a-z0-9]){re.escape(alias)}(?![a-z0-9])", text) is not None
+
+
+def _target_company(question: str, companies: set[str]) -> str | None:
+    lowered = question.casefold()
+    matched: set[str] = set()
+    for alias, company in _COMPANY_ALIASES:
+        if company in companies and _has_alias(lowered, alias):
+            matched.add(company)
+    if not matched:
+        for company in companies:
+            if _has_alias(lowered, company.casefold()):
+                matched.add(company)
+    if len(matched) == 1:
+        return next(iter(matched))
+    return None
 
 
 def _tokenize(text: str) -> tuple[str, ...]:
@@ -454,19 +562,32 @@ async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple
 
     keywords = _query_keywords(question)
     variants = _query_variants(question, keywords)
-    candidate_limit = max(limit * 8, 120)
+    candidate_limit = max(limit * 100, 2000)
 
-    candidates: dict[str, MemoryHit] = {}
+    all_candidates: dict[str, MemoryHit] = {}
     for variant in variants:
         page = await memory.search(SearchMemoryRequest(query=variant, mode="fts", limit=candidate_limit))
         for hit in page.hits:
             key = f"{hit.entry_id}:{hit.entry_version_id}"
-            current = candidates.get(key)
+            current = all_candidates.get(key)
             if current is None or hit.score > current.score:
-                candidates[key] = hit
+                all_candidates[key] = hit
 
-    if not candidates:
+    if not all_candidates:
         return ()
+
+    companies = {_company_of(_document_id_of(hit.text)) for hit in all_candidates.values()}
+    target_company = _target_company(question, companies)
+    if target_company:
+        candidates = {
+            key: hit
+            for key, hit in all_candidates.items()
+            if _company_of(_document_id_of(hit.text)) == target_company
+        }
+    else:
+        candidates = all_candidates
+    if not candidates:
+        candidates = all_candidates
 
     query_terms = set(keywords) | set(_matched_hint_terms(question))
     for term in keywords:
