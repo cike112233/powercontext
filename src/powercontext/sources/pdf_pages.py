@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import urllib.parse
 from typing import Annotated, Any, Literal
 
@@ -220,37 +221,132 @@ def parse_pdf_document(input_doc: PDFDocumentInput) -> tuple[PDFPageInput, ...]:
     return tuple(pages)
 
 
+_QUERY_STOPWORDS = frozenset(
+    """
+    a an the and or but if then than so such as of to in on at by for from with without
+    about into over under between among during before after above below up down out off
+    again further once here there when where why how all any both each few more most other
+    some no nor not only own same too very can could should would may might must shall will
+    just now is are was were be been being have has had having do does did doing i me my we
+    our us you your he him his she her it its they them their this that these those what
+    which who whom whose please answer question based according given show shown stated
+    state report reported reports outline outlined directly primarily mainly exactly
+    currently also use using used able perspective analyst assume assuming rely relying
+    details detail information provide respond response calculate calculated compute
+    computed define defined much many percentage percent
+    """.split()
+)
+
+_TOKEN_PATTERN = re.compile(r"[a-z]+|\d+")
+
+
+def _tokenize(text: str) -> tuple[str, ...]:
+    return tuple(_TOKEN_PATTERN.findall(text.casefold()))
+
+
+def _stem(term: str) -> str:
+    """Small, deterministic suffix normalizer for lexical matching."""
+    if term.endswith("ies") and len(term) > 4:
+        return term[:-3] + "y"
+    if term.endswith("ing") and len(term) > 5:
+        return term[:-3]
+    if term.endswith("ed") and len(term) > 4:
+        return term[:-2]
+    if term.endswith("es") and len(term) > 4 and not term.endswith("ses"):
+        return term[:-2]
+    if term.endswith("s") and len(term) > 3 and not term.endswith("ss"):
+        return term[:-1]
+    return term
+
+
+def _query_keywords(question: str) -> tuple[str, ...]:
+    """Keep informative terms; drop question boilerplate and duplicates."""
+    seen: set[str] = set()
+    keywords: list[str] = []
+    for term in _tokenize(question):
+        if term in _QUERY_STOPWORDS:
+            continue
+        if len(term) <= 2 and not term.isdigit():
+            continue
+        if term in seen:
+            continue
+        seen.add(term)
+        keywords.append(term)
+    return tuple(keywords)
+
+
+def _query_variants(question: str, keywords: tuple[str, ...]) -> tuple[str, ...]:
+    """Full question plus progressively tighter keyword queries."""
+    variants: list[str] = [question]
+    if keywords:
+        variants.append(" ".join(keywords[:8]))
+        stemmed = tuple(dict.fromkeys(_stem(term) for term in keywords[:8]))
+        if stemmed != keywords[:8]:
+            variants.append(" ".join(stemmed))
+    return tuple(dict.fromkeys(variant.strip() for variant in variants if variant.strip()))
+
+
 async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple:
     """Search for PDF pages relevant to the given question.
 
-    Args:
-        memory: Scoped Memory instance
-        question: Natural language question
-        limit: Maximum number of citations to return
-
-    Returns:
-        Tuple of MemoryCitation instances for relevant pages
+    The Memory FTS admission requires enough query terms to overlap, so a single
+    natural-language query under-recalls. Run the full question plus tight keyword
+    variants, merge candidates, then rerank by term/number coverage before returning
+    distinct exact page citations.
     """
-    from powercontext.builtin.artifacts.memory.models import MemoryCitation
-    from powercontext.builtin.runtime import GetMemoryEntryRequest, SearchMemoryRequest
+    from powercontext.builtin.artifacts.memory.models import MemoryCitation, MemoryHit
+    from powercontext.builtin.runtime import SearchMemoryRequest
 
-    # Search using Memory API with higher limit to ensure we get enough distinct pages
-    search_request = SearchMemoryRequest(query=question, mode="fts", limit=limit * 2)
-    page = await memory.search(search_request)
+    if limit < 1:
+        return ()
 
-    # Collect citations from search results
-    citations: list = []
+    keywords = _query_keywords(question)
+    variants = _query_variants(question, keywords)
+    candidate_limit = max(limit * 8, 120)
 
-    for hit in page.hits:
+    candidates: dict[str, MemoryHit] = {}
+    for variant in variants:
+        page = await memory.search(SearchMemoryRequest(query=variant, mode="fts", limit=candidate_limit))
+        for hit in page.hits:
+            key = f"{hit.entry_id}:{hit.entry_version_id}"
+            current = candidates.get(key)
+            if current is None or hit.score > current.score:
+                candidates[key] = hit
+
+    if not candidates:
+        return ()
+
+    query_terms = set(keywords)
+    stemmed_terms = {_stem(term) for term in query_terms}
+    numeric_terms = {term for term in query_terms if term.isdigit()}
+
+    scored: list[tuple[float, MemoryHit]] = []
+    for hit in candidates.values():
+        page_terms = set(_tokenize(hit.text))
+        page_stems = {_stem(term) for term in page_terms}
+        overlap = len(query_terms & page_terms)
+        stem_overlap = len(stemmed_terms & page_stems)
+        number_overlap = len(numeric_terms & page_terms)
+        score = overlap * 4.0 + stem_overlap * 2.0 + number_overlap * 3.0 + min(max(hit.score, 0.0), 50.0) * 0.1
+        scored.append((score, hit))
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+
+    citations: list[MemoryCitation] = []
+    seen_entries: set[str] = set()
+    for _score, hit in scored:
+        if hit.entry_id in seen_entries:
+            continue
+        seen_entries.add(hit.entry_id)
+        citations.append(
+            MemoryCitation(
+                memory_ref=hit.memory_ref,
+                entry_id=hit.entry_id,
+                entry_version_id=hit.entry_version_id,
+            )
+        )
         if len(citations) >= limit:
             break
-
-        citation = MemoryCitation(
-            memory_ref=hit.memory_ref,
-            entry_id=hit.entry_id,
-            entry_version_id=hit.entry_version_id,
-        )
-        citations.append(citation)
 
     return tuple(citations)
 
