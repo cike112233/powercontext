@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { CATEGORY_LABELS, type Category, type SearchResult } from "@/lib/types";
 import { api, type SearchLogRow } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 const CATEGORY_ICONS: Record<Category, React.ElementType> = {
   paper: FileText,
@@ -41,6 +42,8 @@ interface SeekdbStatus {
   connected: boolean;
   count: number;
   collection: string;
+  backend?: string;
+  vector?: { algorithm: string; dimensions?: number; embedding?: string };
 }
 
 // 内嵌知识库 - 演示模式完全自包含，不依赖外部服务
@@ -137,6 +140,21 @@ export function SearchPage() {
   const [mode, setMode] = useState<"live" | "demo">("demo");
   const [logs, setLogs] = useState<SearchLogRow[]>([]);
 
+  // 后端标识：发布站点由 Qoder Sites Function + 私有数据库提供服务端向量检索，
+  // 本地可用 seekdb（server/index.mjs，seekdb-js SDK）作为向量库运行同一套 API。
+  const backendLabel =
+    seekdbStatus?.backend === "seekdb"
+      ? "seekdb 向量数据库（本地实例）"
+      : seekdbStatus?.backend === "qoder-sites-function-database"
+        ? "Qoder Sites Function + 私有数据库"
+        : "向量检索后端";
+  const vectorLabel = seekdbStatus?.vector?.dimensions
+    ? `${seekdbStatus.vector.dimensions} 维余弦相似度`
+    : seekdbStatus?.vector?.algorithm
+      ? seekdbStatus.vector.algorithm
+      : "余弦相似度";
+  const isSeekdbBackend = seekdbStatus?.backend === "seekdb";
+
   // 检查 seekdb 连接状态（发布站点经 Function 代理到真实后端）
   useEffect(() => {
     api
@@ -174,8 +192,8 @@ export function SearchPage() {
                 category: r.category as Category,
                 tags: r.tags,
                 source: r.source,
-                createdAt: "",
-                updatedAt: "",
+                createdAt: r.created_at ?? "",
+                updatedAt: r.created_at ?? "",
               },
               score: r.score,
               highlights: [],
@@ -203,11 +221,11 @@ export function SearchPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">语义搜索</h1>
         <p className="text-muted-foreground">
-          基于 seekdb 向量数据库的自然语言检索
+          自然语言 → 服务端向量化 → 余弦相似度检索，检索记录全程可追溯
         </p>
       </div>
 
-      {/* seekdb 状态指示 */}
+      {/* 后端连接状态指示 */}
       <Card className={mode === "live" ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20" : "border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20"}>
         <CardContent className="flex items-center gap-3 p-4">
           {mode === "live" ? (
@@ -215,10 +233,11 @@ export function SearchPage() {
               <CheckCircle2 className="h-5 w-5 text-green-600" />
               <div>
                 <p className="font-medium text-green-800 dark:text-green-400">
-                  seekdb 已连接 — 实时向量检索模式
+                  实时向量检索已连接 — 服务端语义检索模式
                 </p>
                 <p className="text-sm text-green-600 dark:text-green-500">
-                  Collection: {seekdbStatus?.collection} | 数据量: {seekdbStatus?.count} 条 | HNSW 索引
+                  后端: {backendLabel} | 数据表: {seekdbStatus?.collection} | 数据量: {seekdbStatus?.count} 条 |{" "}
+                  {vectorLabel}
                 </p>
               </div>
             </>
@@ -227,10 +246,11 @@ export function SearchPage() {
               <AlertCircle className="h-5 w-5 text-amber-600" />
               <div>
                 <p className="font-medium text-amber-800 dark:text-amber-400">
-                  演示模式 — seekdb SDK 已集成，连接本地实例可切换为实时模式
+                  演示模式 — 未连接后端，使用内置示例知识库
                 </p>
                 <p className="text-sm text-amber-600 dark:text-amber-500">
-                  启动 seekdb: <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/30">docker run -d -p 2881:2881 oceanbase/seekdb</code>
+                  本地启动真实后端：<code className="rounded bg-amber-100 px-1 dark:bg-amber-900/30">npm run dev:function</code>
+                  （或 seekdb 模式 <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/30">npm run dev:seekdb</code>）
                 </p>
               </div>
             </>
@@ -247,8 +267,8 @@ export function SearchPage() {
           </CardTitle>
           <CardDescription>
             {mode === "live"
-              ? "seekdb 将查询文本向量化，通过 HNSW 索引进行余弦相似度检索"
-              : "输入自然语言问题，体验 seekdb 语义搜索效果（演示数据）"}
+              ? "查询文本在服务端完成向量化，按余弦相似度检索真实数据库中的知识条目，并写入检索记录"
+              : "输入自然语言问题，体验语义搜索效果（内置演示数据）"}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -282,7 +302,7 @@ export function SearchPage() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {mode === "live" ? "seekdb 检索中..." : "搜索中..."}
+                  {mode === "live" ? "向量检索中..." : "搜索中..."}
                 </>
               ) : (
                 <>
@@ -293,7 +313,7 @@ export function SearchPage() {
             </Button>
           </div>
 
-          {/* seekdb SDK 代码展示 */}
+          {/* 当前后端真实调用代码展示 */}
           <div className="rounded-lg border bg-muted/50 p-3">
             <button
               onClick={() => setShowCode(!showCode)}
@@ -301,13 +321,14 @@ export function SearchPage() {
             >
               <span className="flex items-center gap-2">
                 <Database className="h-4 w-4" />
-                seekdb SDK 调用代码（TypeScript）
+                {isSeekdbBackend ? "seekdb SDK 调用代码（server/index.mjs）" : "服务端检索代码（functions/routes.mjs）"}
               </span>
               <ArrowRight className={`h-4 w-4 transition-transform ${showCode ? "rotate-90" : ""}`} />
             </button>
             {showCode && (
               <pre className="mt-2 overflow-x-auto rounded bg-background p-3 text-xs font-mono leading-relaxed">
-{`// lib/seekdb.ts - 使用 seekdb-js SDK v1.4.0
+                {isSeekdbBackend
+                  ? `// lib/seekdb.ts + server/index.mjs - 使用 seekdb-js SDK v1.4.0
 import { SeekdbClient } from "seekdb";
 
 // 1. 连接 seekdb 服务器
@@ -330,7 +351,38 @@ const results = await collection.query({
   include: ["documents", "metadatas", "distances"],
 });
 
-// 4. 结果按余弦相似度排序返回`}
+// 4. 结果按余弦相似度排序返回`
+                  : `// functions/routes.mjs - Qoder Sites Function 服务端向量检索
+if (path === "/api/search" && method === "POST") {
+  const body = await readJson(request);            // 校验 JSON 与长度上限
+  const queryText = body.query.trim();
+
+  // 1. 读取知识库候选集（可按分类过滤，服务端私有数据库）
+  const candidates = rows(await db.from("knowledge_entries")
+    .select("id,title,content,category,tags,source,created_at")
+    ${category !== "all" ? `.eq("category", "${category}")\n    ` : ""}.order("created_at", { ascending: false }).limit(${500}));
+
+  // 2. TF-IDF 加权哈希向量（128 维，L2 归一化），IDF 由候选集词频统计得出
+  const docTokens = candidates.map(row => tokenize(documentText(row)));
+  const idf = createIdfWeight(docTokens);
+  const queryVector = embed(queryText, idf);
+
+  // 3. 余弦相似度打分并取 Top-K
+  const scored = candidates
+    .map((row, i) => ({ entry: toEntry(row), score: cosine(queryVector, embedTokens(docTokens[i], idf)) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, ${5});
+
+  // 4. 写入检索记录（使用痕迹，可追溯）
+  await db.from("search_logs").insert({
+    id: crypto.randomUUID(), query: queryText,
+    category: "${category}", result_count: scored.length,
+    top_score: Math.round(scored[0].score * 10000),
+    created_at: new Date().toISOString(),
+  });
+
+  return Response.json({ results: scored });
+}`}
               </pre>
             )}
           </div>
@@ -343,7 +395,7 @@ const results = await collection.query({
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Loader2 className="mb-3 h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">
-              {mode === "live" ? "seekdb HNSW 索引检索中..." : "计算向量相似度..."}
+              {mode === "live" ? "服务端向量检索中..." : "计算向量相似度..."}
             </p>
           </CardContent>
         </Card>
@@ -354,7 +406,7 @@ const results = await collection.query({
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Sparkles className="h-4 w-4" />
             找到 {results.length} 条相关结果
-            {mode === "live" ? "（seekdb 实时检索）" : "（演示模式）"}
+            {mode === "live" ? "（实时向量检索）" : "（演示模式）"}
           </div>
           {results.map((result, index) => {
             const Icon = CATEGORY_ICONS[result.entry.category];
@@ -372,14 +424,14 @@ const results = await collection.query({
                           <Badge variant="outline">{CATEGORY_LABELS[result.entry.category]}</Badge>
                           <Badge
                             className={
-                              result.score > 0.7
+                              result.score > 0.25
                                 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                                : result.score > 0.4
+                                : result.score > 0.1
                                 ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                                 : "bg-muted text-muted-foreground"
                             }
                           >
-                            {(result.score * 100).toFixed(0)}% 匹配
+                            相似度 {(result.score * 100).toFixed(1)}%
                           </Badge>
                         </div>
                       </div>
@@ -393,13 +445,20 @@ const results = await collection.query({
                       </div>
                       <div className="mt-3">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>语义相似度</span>
-                          <span>{(result.score * 100).toFixed(1)}%</span>
+                          <span>{mode === "live" ? "服务端余弦相似度" : "语义相似度"}</span>
+                          <span>
+                            {mode === "live" ? result.score.toFixed(4) : `${(result.score * 100).toFixed(1)}%`}
+                          </span>
                         </div>
                         <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
                           <div
                             className="h-full rounded-full bg-primary transition-all"
-                            style={{ width: `${result.score * 100}%` }}
+                            style={{
+                              width: `${Math.max(
+                                2,
+                                Math.round((result.score / (results[0]?.score || 1)) * 100),
+                              )}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -421,16 +480,16 @@ const results = await collection.query({
         </Card>
       )}
 
-      {/* 检索记录 - seekdb 使用痕迹 */}
+      {/* 检索记录 - 真实使用痕迹 */}
       {mode === "live" && logs.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
-              检索记录（seekdb 使用痕迹）
+              检索记录（真实使用痕迹）
             </CardTitle>
             <CardDescription>
-              每次语义检索都会记录在 seekdb 的 search_logs 表中，可追溯查询内容与命中情况
+              每次语义检索都会写入数据库 search_logs 表，可追溯查询内容、命中条数与最高相似度
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -440,7 +499,7 @@ const results = await collection.query({
                   <span className="truncate font-medium">{log.query}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     命中 {log.result_count} 条 · 最高相似度 {((log.top_score || 0) * 100).toFixed(0)}% ·{" "}
-                    {String(log.created_at).replace("T", " ").slice(0, 19)}
+                    {formatDate(log.created_at)}
                   </span>
                 </div>
               ))}
@@ -454,13 +513,22 @@ const results = await collection.query({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Info className="h-5 w-5" />
-            seekdb 向量检索技术说明
+            向量检索技术说明
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <h4 className="text-sm font-semibold">seekdb SDK 集成</h4>
+              <h4 className="text-sm font-semibold">线上模式（当前站点）</h4>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                <li>· Qoder Sites Function 服务端业务路由</li>
+                <li>· 平台注入凭据访问私有数据库，前端零凭据</li>
+                <li>· 128 维 TF-IDF 加权哈希向量 + 余弦相似度</li>
+                <li>· 每次检索写入 search_logs，形成可追溯痕迹</li>
+              </ul>
+            </div>
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold">seekdb 模式（本地 / 自托管）</h4>
               <ul className="space-y-1 text-sm text-muted-foreground">
                 <li>· 使用 seekdb-js v1.4.0 官方 SDK</li>
                 <li>· Server 模式连接 (127.0.0.1:2881)</li>
@@ -468,22 +536,14 @@ const results = await collection.query({
                 <li>· HNSW 向量索引，余弦相似度计算</li>
               </ul>
             </div>
-            <div className="space-y-2">
-              <h4 className="text-sm font-semibold">核心 API 调用</h4>
-              <ul className="space-y-1 text-sm text-muted-foreground">
-                <li>· <code className="rounded bg-muted px-1 text-xs">client.createCollection()</code> 创建集合</li>
-                <li>· <code className="rounded bg-muted px-1 text-xs">collection.add()</code> 自动向量化插入</li>
-                <li>· <code className="rounded bg-muted px-1 text-xs">collection.query()</code> 语义搜索</li>
-                <li>· <code className="rounded bg-muted px-1 text-xs">collection.hybridSearch()</code> 混合检索</li>
-              </ul>
-            </div>
           </div>
           <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950/20">
             <p className="text-xs text-blue-800 dark:text-blue-400">
               <strong>源码位置：</strong>
-              <code className="rounded bg-blue-100 px-1 dark:bg-blue-900/30">lib/seekdb.ts</code>（SDK 封装层）|
-              <code className="rounded bg-blue-100 px-1 dark:bg-blue-900/30">server/index.mjs</code>（API 服务器）|
-              <code className="rounded bg-blue-100 px-1 dark:bg-blue-900/30">scripts/init-seekdb.mjs</code>（数据初始化）
+              <code className="rounded bg-blue-100 px-1 dark:bg-blue-900/30">functions/routes.mjs</code>（线上业务路由）|
+              <code className="rounded bg-blue-100 px-1 dark:bg-blue-900/30">lib/seekdb.ts</code>（seekdb SDK 封装层）|
+              <code className="rounded bg-blue-100 px-1 dark:bg-blue-900/30">server/index.mjs</code>（seekdb API 服务器）|
+              <code className="rounded bg-blue-100 px-1 dark:bg-blue-900/30">deploy/setup-ecs.sh</code>（seekdb 一键部署）
             </p>
           </div>
         </CardContent>

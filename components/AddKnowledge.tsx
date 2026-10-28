@@ -31,15 +31,15 @@ export function AddKnowledge() {
   const [source, setSource] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [seekdbAvailable, setSeekdbAvailable] = useState(false);
+  const [backendAvailable, setBackendAvailable] = useState(false);
   const [error, setError] = useState("");
 
-  // 检查 seekdb 是否可用
+  // 检查后端是否可用（发布站点：Sites Function + 私有数据库；本地：seekdb）
   useEffect(() => {
     api
       .status()
       .then((data) => {
-        if (data.connected) setSeekdbAvailable(true);
+        if (data.connected) setBackendAvailable(true);
       })
       .catch(() => {});
   }, []);
@@ -61,12 +61,12 @@ export function AddKnowledge() {
         source: source.trim() || undefined,
       };
 
-      if (seekdbAvailable) {
-        // 真实 seekdb 插入（自动向量化）
+      if (backendAvailable) {
+        // 真实写入后端数据库（服务端完成向量化与检索索引）
         const data = await api.add(entry as any);
-        if (!data.success) throw new Error("写入 seekdb 失败");
+        if (!data.success) throw new Error("写入知识库失败");
       } else {
-        // 演示模式
+        // 演示模式：仅本地状态，不产生持久化数据
         await new Promise((r) => setTimeout(r, 500));
       }
 
@@ -92,7 +92,7 @@ export function AddKnowledge() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">添加知识</h1>
         <p className="text-muted-foreground">
-          将新的研究资料录入知识库，seekdb 将自动进行向量化存储
+          将新的研究资料录入知识库，服务端完成向量化与持久化存储
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export function AddKnowledge() {
             <div>
               <p className="font-medium text-green-800 dark:text-green-400">知识条目已成功录入</p>
               <p className="text-sm text-green-600 dark:text-green-500">
-                {seekdbAvailable ? "seekdb 已完成向量化存储" : "演示模式：seekdb 启动后将自动向量化"}
+                {backendAvailable ? "已写入数据库，可立即在语义搜索中检索到" : "演示模式：未连接后端，数据不会持久化"}
               </p>
             </div>
             <Button
@@ -134,7 +134,7 @@ export function AddKnowledge() {
             新建知识条目
           </CardTitle>
           <CardDescription>
-            填写知识条目信息，提交后 seekdb 将自动计算向量嵌入并存储
+            填写知识条目信息，提交后服务端会写入数据库并纳入向量检索范围
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -219,34 +219,34 @@ export function AddKnowledge() {
               {submitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {seekdbAvailable ? "seekdb 向量化存储中..." : "提交中..."}
+                  {backendAvailable ? "写入数据库中..." : "提交中..."}
                 </>
               ) : (
                 <>
                   <Database className="mr-2 h-4 w-4" />
-                  {seekdbAvailable ? "提交到 seekdb" : "提交（演示模式）"}
+                  {backendAvailable ? "提交到知识库" : "提交（演示模式）"}
                 </>
               )}
             </Button>
             <span className="text-xs text-muted-foreground">
-              提交后 seekdb 将计算 128 维向量嵌入并存入 HNSW 索引
+              提交后服务端写入 knowledge_entries 表，并纳入 128 维向量检索范围
             </span>
           </div>
         </CardContent>
       </Card>
 
-      {/* seekdb Pipeline Info */}
+      {/* 存储流程 */}
       <Card>
         <CardHeader>
-          <CardTitle>seekdb 存储流程</CardTitle>
+          <CardTitle>知识入库流程</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             {[
-              { step: "1", label: "文本输入", desc: "标题 + 内容" },
-              { step: "2", label: "向量化", desc: "Embedding 模型" },
-              { step: "3", label: "索引构建", desc: "HNSW 图索引" },
-              { step: "4", label: "存储完成", desc: "可被语义检索" },
+              { step: "1", label: "文本输入", desc: "标题 + 内容 + 标签" },
+              { step: "2", label: "服务端校验", desc: "字段与长度白名单" },
+              { step: "3", label: "写入数据库", desc: "knowledge_entries 表" },
+              { step: "4", label: "向量化检索", desc: "128 维余弦相似度" },
             ].map((item, i) => (
               <div key={item.step} className="flex items-center gap-2 flex-1">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">

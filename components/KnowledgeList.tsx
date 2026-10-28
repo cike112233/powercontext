@@ -22,6 +22,7 @@ import {
 import { SAMPLE_ENTRIES } from "@/lib/data";
 import { CATEGORY_LABELS, type Category, type KnowledgeEntry } from "@/lib/types";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 
 const CATEGORY_ICONS: Record<Category, React.ElementType> = {
   paper: FileText,
@@ -45,7 +46,7 @@ export function KnowledgeList() {
   const [entries, setEntries] = useState<KnowledgeEntry[]>(SAMPLE_ENTRIES);
   const [live, setLive] = useState(false);
 
-  // 优先从真实 seekdb 加载知识库列表
+  // 优先从真实后端加载知识库列表（发布站点：Sites Function + 私有数据库）
   useEffect(() => {
     api
       .list()
@@ -59,8 +60,8 @@ export function KnowledgeList() {
               category: e.category as Category,
               tags: e.tags,
               source: e.source,
-              createdAt: "",
-              updatedAt: "",
+              createdAt: e.created_at ?? "",
+              updatedAt: e.created_at ?? "",
             }))
           );
           setLive(true);
@@ -87,7 +88,7 @@ export function KnowledgeList() {
           浏览和管理所有知识条目
           {live && (
             <Badge className="ml-2 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              seekdb 实时数据 · {entries.length} 条
+              数据库实时数据 · {entries.length} 条
             </Badge>
           )}
         </p>
@@ -163,7 +164,7 @@ export function KnowledgeList() {
                           </span>
                         )}
                       </div>
-                      <span>更新于 {entry.updatedAt}</span>
+                      <span>更新于 {formatDate(entry.updatedAt)}</span>
                     </div>
                   </div>
                 </div>

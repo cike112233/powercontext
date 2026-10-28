@@ -16,6 +16,7 @@ import {
 import { SAMPLE_ENTRIES, getAllTags } from "@/lib/data";
 import { CATEGORY_LABELS, type Category, type KnowledgeEntry } from "@/lib/types";
 import { api } from "@/lib/api";
+import { formatDate } from "@/lib/utils";
 import type { Page } from "@/src/App";
 
 const CATEGORY_ICONS: Record<Category, React.ElementType> = {
@@ -42,7 +43,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const [entries, setEntries] = useState<KnowledgeEntry[]>(SAMPLE_ENTRIES);
   const [live, setLive] = useState(false);
 
-  // 优先从真实 seekdb 加载统计
+  // 优先从真实后端加载统计（发布站点：Sites Function + 私有数据库；本地：seekdb）
   useEffect(() => {
     api
       .list()
@@ -56,8 +57,8 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               category: e.category as Category,
               tags: e.tags,
               source: e.source,
-              createdAt: "",
-              updatedAt: "",
+              createdAt: e.created_at ?? "",
+              updatedAt: e.created_at ?? "",
             }))
           );
           setLive(true);
@@ -83,7 +84,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           知识库概览与最近动态
           {live && (
             <Badge className="ml-2 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              seekdb 实时连接
+              实时数据连接
             </Badge>
           )}
         </p>
@@ -120,18 +121,18 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-muted-foreground">seekdb 嵌入维度</p>
+            <p className="text-xs text-muted-foreground">服务端向量嵌入维度</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">检索引擎</CardTitle>
+            <CardTitle className="text-sm font-medium">检索算法</CardTitle>
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">HNSW</div>
-            <p className="text-xs text-muted-foreground">向量索引算法</p>
+            <div className="text-2xl font-bold">Cosine</div>
+            <p className="text-xs text-muted-foreground">向量相似度（seekdb 模式为 HNSW 索引）</p>
           </CardContent>
         </Card>
       </div>
@@ -223,7 +224,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                       <Badge variant="outline" className="text-xs">
                         {CATEGORY_LABELS[entry.category]}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">{entry.updatedAt}</span>
+                      <span className="text-xs text-muted-foreground">{formatDate(entry.updatedAt)}</span>
                     </div>
                   </div>
                 </div>

@@ -175,7 +175,15 @@ const server = createServer(async (req, res) => {
     const connected = client?.isConnected() ?? false;
     const count = connected ? await collection.count() : 0;
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ connected, count, collection: COLLECTION_NAME }));
+    res.end(
+      JSON.stringify({
+        connected,
+        count,
+        collection: COLLECTION_NAME,
+        backend: "seekdb",
+        vector: { algorithm: "HNSW 索引 + seekdb 自动向量化", embedding: "seekdb-auto-embedding" },
+      })
+    );
     return;
   }
 
