@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 import { SAMPLE_ENTRIES, getAllTags } from "@/lib/data";
 import { CATEGORY_LABELS, type Category, type KnowledgeEntry } from "@/lib/types";
+import { api } from "@/lib/api";
 import type { Page } from "@/src/App";
 
 const CATEGORY_ICONS: Record<Category, React.ElementType> = {
@@ -37,20 +39,54 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onNavigate }: DashboardProps) {
-  const totalEntries = SAMPLE_ENTRIES.length;
+  const [entries, setEntries] = useState<KnowledgeEntry[]>(SAMPLE_ENTRIES);
+  const [live, setLive] = useState(false);
+
+  // 优先从真实 seekdb 加载统计
+  useEffect(() => {
+    api
+      .list()
+      .then((data) => {
+        if (data.entries && data.entries.length > 0) {
+          setEntries(
+            data.entries.map((e) => ({
+              id: e.id,
+              title: e.title,
+              content: e.content,
+              category: e.category as Category,
+              tags: e.tags,
+              source: e.source,
+              createdAt: "",
+              updatedAt: "",
+            }))
+          );
+          setLive(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const totalEntries = entries.length;
   const byCategory = (Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => ({
     category: cat,
-    count: SAMPLE_ENTRIES.filter((e: KnowledgeEntry) => e.category === cat).length,
+    count: entries.filter((e: KnowledgeEntry) => e.category === cat).length,
   }));
-  const recentEntries = [...SAMPLE_ENTRIES].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 5);
-  const tagCloud = getAllTags(SAMPLE_ENTRIES).slice(0, 12);
+  const recentEntries = [...entries].slice(0, 5);
+  const tagCloud = getAllTags(entries).slice(0, 12);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">仪表盘</h1>
-        <p className="text-muted-foreground">知识库概览与最近动态</p>
+        <p className="text-muted-foreground">
+          知识库概览与最近动态
+          {live && (
+            <Badge className="ml-2 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+              seekdb 实时连接
+            </Badge>
+          )}
+        </p>
       </div>
 
       {/* Stats Cards */}

@@ -24,10 +24,10 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
+  History,
 } from "lucide-react";
 import { CATEGORY_LABELS, type Category, type SearchResult } from "@/lib/types";
-
-const API_BASE = "http://localhost:3001";
+import { api, type SearchLogRow } from "@/lib/api";
 
 const CATEGORY_ICONS: Record<Category, React.ElementType> = {
   paper: FileText,
@@ -135,38 +135,24 @@ export function SearchPage() {
   const [showCode, setShowCode] = useState(false);
   const [seekdbStatus, setSeekdbStatus] = useState<SeekdbStatus | null>(null);
   const [mode, setMode] = useState<"live" | "demo">("demo");
+  const [logs, setLogs] = useState<SearchLogRow[]>([]);
 
-  // 检查 seekdb 连接状态 - 仅在本地开发时检查，避免在发布站点上产生控制台错误
+  // 检查 seekdb 连接状态（发布站点经 Function 代理到真实后端）
   useEffect(() => {
-    // 只在 localhost 或 127.0.0.1 上检查 seekdb 连接
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1';
-    
-    if (!isLocalhost) {
-      setMode("demo");
-      return;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-    fetch(`${API_BASE}/api/status`, { signal: controller.signal })
-      .then((r) => r.json())
+    api
+      .status()
       .then((data) => {
-        clearTimeout(timeoutId);
         if (data.connected) {
           setSeekdbStatus(data);
           setMode("live");
+          api.logs().then((l) => setLogs(l.logs)).catch(() => {});
         } else {
           setMode("demo");
         }
       })
       .catch(() => {
-        clearTimeout(timeoutId);
         setMode("demo");
       });
-
-    return () => clearTimeout(timeoutId);
   }, []);
 
   const handleSearch = async () => {
@@ -175,26 +161,17 @@ export function SearchPage() {
     setSearched(true);
 
     if (mode === "live") {
-      // 真实 seekdb 搜索
+      // 真实 seekdb 语义检索
       try {
-        const res = await fetch(`${API_BASE}/api/search`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: query.trim(),
-            category: category !== "all" ? category : undefined,
-            topK: 5,
-          }),
-        });
-        const data = await res.json();
+        const data = await api.search(query.trim(), category, 5);
         if (data.results) {
           setResults(
-            data.results.map((r: any) => ({
+            data.results.map((r) => ({
               entry: {
                 id: r.id,
                 title: r.title,
                 content: r.content,
-                category: r.category,
+                category: r.category as Category,
                 tags: r.tags,
                 source: r.source,
                 createdAt: "",
@@ -207,6 +184,7 @@ export function SearchPage() {
         } else {
           setResults([]);
         }
+        api.logs().then((l) => setLogs(l.logs)).catch(() => {});
       } catch {
         setResults([]);
       }
@@ -439,6 +417,34 @@ const results = await collection.query({
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Search className="mb-3 h-10 w-10 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">未找到相关结果，请尝试其他查询</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 检索记录 - seekdb 使用痕迹 */}
+      {mode === "live" && logs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              检索记录（seekdb 使用痕迹）
+            </CardTitle>
+            <CardDescription>
+              每次语义检索都会记录在 seekdb 的 search_logs 表中，可追溯查询内容与命中情况
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {logs.slice(0, 8).map((log, i) => (
+                <div key={i} className="flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
+                  <span className="truncate font-medium">{log.query}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    命中 {log.result_count} 条 · 最高相似度 {((log.top_score || 0) * 100).toFixed(0)}% ·{" "}
+                    {String(log.created_at).replace("T", " ").slice(0, 19)}
+                  </span>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}

@@ -1,4 +1,95 @@
-# Qoder Sites React starter
+# 智能科研助手（Smart Research Assistant）
+
+基于 **seekdb 向量数据库** 的科研知识管理与语义检索工具，使用 Qoder 完成全流程开发，并通过 Qoder Sites 发布到公网。
+
+## 功能
+
+- 语义搜索：自然语言查询，seekdb 自动向量化 + HNSW 余弦相似度检索
+- 知识库管理：浏览 / 分类过滤 / 新增知识条目（写入 seekdb 自动向量化）
+- 检索记录：每次检索落库 `search_logs` 表，页面可视化展示使用痕迹
+- 仪表盘：条目总数、分类分布、标签云、最近更新（实时来自 seekdb）
+
+## 技术架构
+
+```
+浏览器(https Qoder Sites)
+   │  同源请求 /functions/v1/app/*
+   ▼
+Qoder Sites Function (Deno edge, functions/handler.ts)  ← HTTPS 代理，避免 mixed content
+   │  http://<ECS公网IP>:3001/api/*
+   ▼
+API 服务器 (Node, server/index.mjs, seekdb-js SDK v1.4.0)
+   │  MySQL 协议 127.0.0.1:2881
+   ▼
+seekdb (Docker: oceanbase/seekdb)  ← 向量存储 / 自动向量化 / HNSW 索引
+```
+
+- 前端：React 19 + TypeScript + Tailwind CSS 4 + shadcn/ui，构建产物在 `dist/`
+- 后端：`server/index.mjs`（Node HTTP + seekdb-js SDK）
+- 代理：`functions/handler.ts`（Qoder Sites Function，服务端转发到后端）
+- 数据库：seekdb（collection `knowledge_base` + 标量表 `search_logs`）
+
+## 运行说明
+
+### 环境依赖
+
+- Node.js `^22.13.0 || >=24.0.0`
+- Docker（用于运行 seekdb）
+- seekdb-js SDK `1.4.0`（`package.json` 已声明）
+
+### 方式一：本地完整运行（真实 seekdb）
+
+```sh
+# 1. 启动 seekdb（仅本机监听 2881）
+docker run -d --name seekdb -p 127.0.0.1:2881:2881 oceanbase/seekdb
+
+# 2. 安装依赖并启动 API 服务器（端口 3001，首次启动自动建库导入示例数据）
+npm ci
+node server/index.mjs
+
+# 3. 启动前端（另开终端），前端在 localhost 下直连 http://localhost:3001
+npm run dev
+```
+
+自检：`curl http://127.0.0.1:3001/api/status` 返回 `{"connected":true,...}`。
+
+### 方式二：公网部署（发布站点真实调用 seekdb）
+
+```sh
+# 1. 在一台有公网 IP 的 Linux 服务器（如阿里云 ECS）上以 root 执行一键脚本：
+bash deploy/setup-ecs.sh
+#    脚本会安装 Docker + seekdb + Node22，并以 systemd 托管 API 服务器
+
+# 2. 在云控制台安全组放行 TCP 3001（不要放行 2881）
+
+# 3. 将公网 IP 写入 functions/handler.ts 的 API_ORIGIN 常量
+
+# 4. 构建前端并按 Qoder Sites 流程发布（webDirectory: dist, functionDirectory: functions, spa: true）
+npm run build
+```
+
+发布后，站点所有检索 / 入库 / 检索记录请求经同源 Function 转发到该服务器上的 seekdb。
+后端不可达时前端自动回退到内置演示数据，页面保持可用。
+
+### seekdb 连接配置
+
+| 配置项 | 值 |
+| --- | --- |
+| host / port | 127.0.0.1:2881（服务器本机） |
+| user / password | root / 空（占位，无敏感凭据） |
+| database | research_assistant |
+| collection | knowledge_base |
+| 检索记录表 | search_logs |
+
+## 验证材料指引
+
+1. 打开发布站点 → 语义搜索 → 输入「向量数据库」→ 返回按余弦相似度排序的结果（seekdb 实时检索）
+2. 添加知识 → 提交 → 知识库列表与仪表盘计数实时增加（数据已写入 seekdb）
+3. 搜索页「检索记录」卡片展示历史查询、命中数与最高相似度（seekdb `search_logs` 表）
+
+---
+
+# Qoder Sites React starter（模板原文）
 
 A React, TypeScript, Vite and Tailwind frontend with a bundled Shadcn component catalog. Vite produces static files in `dist/`. Server behavior belongs in the optional Qoder Sites Function, not a Node or framework server.
 

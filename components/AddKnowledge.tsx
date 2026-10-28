@@ -21,8 +21,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { CATEGORY_LABELS, type Category } from "@/lib/types";
-
-const API_BASE = "http://localhost:3001";
+import { api } from "@/lib/api";
 
 export function AddKnowledge() {
   const [title, setTitle] = useState("");
@@ -35,29 +34,14 @@ export function AddKnowledge() {
   const [seekdbAvailable, setSeekdbAvailable] = useState(false);
   const [error, setError] = useState("");
 
-  // 检查 seekdb 是否可用 - 仅在本地开发时检查
+  // 检查 seekdb 是否可用
   useEffect(() => {
-    const isLocalhost = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1';
-    
-    if (!isLocalhost) {
-      return;
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-    fetch(`${API_BASE}/api/status`, { signal: controller.signal })
-      .then((r) => r.json())
+    api
+      .status()
       .then((data) => {
-        clearTimeout(timeoutId);
         if (data.connected) setSeekdbAvailable(true);
       })
-      .catch(() => {
-        clearTimeout(timeoutId);
-      });
-
-    return () => clearTimeout(timeoutId);
+      .catch(() => {});
   }, []);
 
   const handleSubmit = async () => {
@@ -78,14 +62,9 @@ export function AddKnowledge() {
       };
 
       if (seekdbAvailable) {
-        // 真实 seekdb 插入
-        const res = await fetch(`${API_BASE}/api/add`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(entry),
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error);
+        // 真实 seekdb 插入（自动向量化）
+        const data = await api.add(entry as any);
+        if (!data.success) throw new Error("写入 seekdb 失败");
       } else {
         // 演示模式
         await new Promise((r) => setTimeout(r, 500));

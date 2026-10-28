@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { SAMPLE_ENTRIES } from "@/lib/data";
 import { CATEGORY_LABELS, type Category, type KnowledgeEntry } from "@/lib/types";
+import { api } from "@/lib/api";
 
 const CATEGORY_ICONS: Record<Category, React.ElementType> = {
   paper: FileText,
@@ -41,8 +42,34 @@ const CATEGORY_COLORS: Record<Category, string> = {
 export function KnowledgeList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [entries, setEntries] = useState<KnowledgeEntry[]>(SAMPLE_ENTRIES);
+  const [live, setLive] = useState(false);
 
-  const filtered = SAMPLE_ENTRIES.filter((entry: KnowledgeEntry) => {
+  // 优先从真实 seekdb 加载知识库列表
+  useEffect(() => {
+    api
+      .list()
+      .then((data) => {
+        if (data.entries && data.entries.length > 0) {
+          setEntries(
+            data.entries.map((e) => ({
+              id: e.id,
+              title: e.title,
+              content: e.content,
+              category: e.category as Category,
+              tags: e.tags,
+              source: e.source,
+              createdAt: "",
+              updatedAt: "",
+            }))
+          );
+          setLive(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const filtered = entries.filter((entry: KnowledgeEntry) => {
     const matchSearch =
       searchTerm === "" ||
       entry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,7 +83,14 @@ export function KnowledgeList() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">知识库</h1>
-        <p className="text-muted-foreground">浏览和管理所有知识条目</p>
+        <p className="text-muted-foreground">
+          浏览和管理所有知识条目
+          {live && (
+            <Badge className="ml-2 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+              seekdb 实时数据 · {entries.length} 条
+            </Badge>
+          )}
+        </p>
       </div>
 
       {/* Filters */}

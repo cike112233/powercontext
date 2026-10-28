@@ -101,6 +101,21 @@ async function initSeekdb() {
 
   console.log("[seekdb] 连接成功");
 
+  // 创建检索记录表（MySQL 协议标量表，用于展示使用痕迹）
+  try {
+    await client.execute(`CREATE TABLE IF NOT EXISTS search_logs (
+      id BIGINT AUTO_INCREMENT PRIMARY KEY,
+      query VARCHAR(500),
+      category VARCHAR(50),
+      result_count INT,
+      top_score DOUBLE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+    console.log("[seekdb] search_logs 表就绪");
+  } catch (err) {
+    console.warn("[seekdb] search_logs 表创建跳过:", err.message);
+  }
+
   // 创建或获取 collection
   if (!(await client.hasCollection(COLLECTION_NAME))) {
     collection = await client.createCollection({ name: COLLECTION_NAME });
@@ -126,6 +141,18 @@ async function initSeekdb() {
   }
 
   return true;
+}
+
+// 记录一次检索（使用痕迹）
+async function recordSearch(query, category, resultCount, topScore) {
+  try {
+    await client.execute(
+      "INSERT INTO search_logs (query, category, result_count, top_score) VALUES (?, ?, ?, ?)",
+      [query, category || "all", resultCount, topScore]
+    );
+  } catch (err) {
+    console.warn("[seekdb] 检索记录写入失败:", err.message);
+  }
 }
 
 // HTTP 服务器
@@ -187,6 +214,9 @@ const server = createServer(async (req, res) => {
           });
         }
 
+        // 记录检索痕迹
+        await recordSearch(query, category, items.length, items[0]?.score ?? 0);
+
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ results: items }));
       } catch (err) {
@@ -225,6 +255,50 @@ const server = createServer(async (req, res) => {
         res.end(JSON.stringify({ error: err.message }));
       }
     });
+    return;
+  }
+
+  // GET /api/list - 知识库列表（真实 seekdb 数据）
+  if (url.pathname === "/api/list" && req.method === "GET") {
+    try {
+      const category = url.searchParams.get("category");
+      const options = { include: ["documents", "metadatas"], limit: 200 };
+      if (category && category !== "all") {
+        options.where = { category };
+      }
+      const data = await collection.get(options);
+      const entries = data.ids.map((id, i) => {
+        const meta = data.metadatas?.[i];
+        return {
+          id,
+          title: meta?.title || "",
+          content: data.documents?.[i] || "",
+          category: meta?.category || "note",
+          tags: JSON.parse(meta?.tags || "[]"),
+          source: meta?.source || undefined,
+        };
+      });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ entries }));
+    } catch (err) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+    return;
+  }
+
+  // GET /api/logs - 检索记录（使用痕迹）
+  if (url.pathname === "/api/logs" && req.method === "GET") {
+    try {
+      const rows = await client.execute(
+        "SELECT query, category, result_count, top_score, created_at FROM search_logs ORDER BY id DESC LIMIT 20"
+      );
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ logs: rows || [] }));
+    } catch (err) {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ logs: [] }));
+    }
     return;
   }
 
