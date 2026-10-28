@@ -166,7 +166,7 @@ from powercontext.builtin.runtime._scope_cache import (
     ScopeCacheObserver,
     ScopeEvictor,
 )
-from powercontext.builtin.runtime.context_pack import ContextPack, ContextPackDelta
+from powercontext.builtin.runtime.context_pack import DEFAULT_CHUNK_BYTES, ContextPack, ContextPackDelta
 from powercontext.builtin.runtime.decision_model import DecisionModel
 from powercontext.builtin.runtime.errors import InvalidRuntimeRequestError, TopicMemoryProcessingUnavailableError
 from powercontext.builtin.runtime.models import (
@@ -822,9 +822,10 @@ class StatisticsApplication:
         )
 
 
-# Incremental packs chunk per rendered line so a delta only carries newly appended lines;
-# the limit only subdivides single lines longer than this.
-_INCREMENTAL_CHUNK_BYTES = 4096
+# Incremental packs chunk per rendered line so a delta only carries newly appended lines; the
+# limit only subdivides single lines longer than this. Aligned with the documented from_content
+# default so a base pack rebuilt independently at the default granularity still shares a prefix.
+_INCREMENTAL_CHUNK_BYTES = DEFAULT_CHUNK_BYTES
 
 
 class ScopedContextApplication:

@@ -416,7 +416,9 @@ class PiSessionConnector:
         checkpoint = session.checkpoint
         imported_ids: dict[str, str] = {}  # event_id -> fingerprint
         if isinstance(checkpoint, dict):
-            imported_ids = checkpoint.get("imported", {})
+            loaded = checkpoint.get("imported", {})
+            if isinstance(loaded, dict):
+                imported_ids = dict(loaded)
 
         # Submit new events
         for event in events:
@@ -432,11 +434,7 @@ class PiSessionConnector:
                 continue  # Skip already imported
 
             # Submit new event
-            outcome = await session.submit(
-                item_id=event.event_id,
-                definition_name=PI_EVENT_SOURCE_NAME,
-                value=event,
-            )
+            outcome = await session.submit(event.event_id, PI_EVENT_SOURCE_NAME, event)
 
             if outcome.status == ConnectorSubmissionStatus.ACCEPTED:
                 imported_ids[event.event_id] = fingerprint
