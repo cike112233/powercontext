@@ -233,8 +233,68 @@ _QUERY_STOPWORDS = frozenset(
     state report reported reports outline outlined directly primarily mainly exactly
     currently also use using used able perspective analyst assume assuming rely relying
     details detail information provide respond response calculate calculated compute
-    computed define defined much many percentage percent
+    computed define defined much many percentage percent materially important ongoing
     """.split()
+)
+
+# Domain-neutral finance/English expansions. They are only used to build extra
+# retrieval queries; the persisted page text is never rewritten.
+_EXPANSIONS: dict[str, tuple[str, ...]] = {
+    "geographies": (
+        "geographic",
+        "countries",
+        "territories",
+        "regions",
+        "segments",
+        "north",
+        "latin",
+        "europe",
+        "africa",
+        "asia",
+        "pacific",
+    ),
+    "geography": (
+        "geographic",
+        "countries",
+        "territories",
+        "regions",
+        "segments",
+        "north",
+        "latin",
+        "europe",
+        "africa",
+        "asia",
+        "pacific",
+    ),
+    "battles": ("litigation", "proceedings", "claims", "lawsuits"),
+    "legal": ("litigation", "proceedings", "claims"),
+    "litigation": ("legal", "proceedings", "claims"),
+    "capex": ("capital", "expenditures"),
+    "ebitda": ("operating", "profit", "income", "depreciation", "amortization"),
+    "restructuring": ("charges", "impairment"),
+    "revenue": ("sales",),
+    "sales": ("revenue",),
+}
+
+# Phrases that identify the section a finance question usually targets.
+_PHRASES: tuple[tuple[str, ...], ...] = (
+    ("legal", "proceedings"),
+    ("cash", "flows"),
+    ("cash", "flow"),
+    ("statement", "of", "income"),
+    ("operating", "profit"),
+    ("countries", "and", "territories"),
+    ("depreciation", "and", "amortization"),
+    ("income", "statement"),
+    ("capital", "expenditures"),
+)
+
+_HEADINGS: tuple[str, ...] = (
+    "item 3. legal proceedings",
+    "consolidated statement of income",
+    "consolidated statements of income",
+    "consolidated statement of cash flows",
+    "consolidated statements of cash flows",
 )
 
 _TOKEN_PATTERN = re.compile(r"[a-z]+|\d+")
@@ -276,14 +336,38 @@ def _query_keywords(question: str) -> tuple[str, ...]:
 
 
 def _query_variants(question: str, keywords: tuple[str, ...]) -> tuple[str, ...]:
-    """Full question plus progressively tighter keyword queries."""
+    """Full question plus tight keyword, stemmed, and domain-expanded queries."""
     variants: list[str] = [question]
     if keywords:
         variants.append(" ".join(keywords[:8]))
         stemmed = tuple(dict.fromkeys(_stem(term) for term in keywords[:8]))
         if stemmed != keywords[:8]:
             variants.append(" ".join(stemmed))
+
+        expanded: list[str] = []
+        synonyms: list[str] = []
+        for term in keywords[:6]:
+            expanded.append(term)
+            expanded.extend(_EXPANSIONS.get(term, ())[:3])
+            synonyms.extend(_EXPANSIONS.get(term, ()))
+        expanded_query = " ".join(dict.fromkeys(expanded))
+        if expanded_query:
+            variants.append(expanded_query)
+        synonym_query = " ".join(dict.fromkeys(synonyms[:12]))
+        if synonym_query:
+            variants.append(synonym_query)
     return tuple(dict.fromkeys(variant.strip() for variant in variants if variant.strip()))
+
+
+def _contains_phrase(tokens: tuple[str, ...], phrase: tuple[str, ...]) -> bool:
+    size = len(phrase)
+    if size == 0 or len(tokens) < size:
+        return False
+    first = phrase[0]
+    for index in range(len(tokens) - size + 1):
+        if tokens[index] == first and tokens[index : index + size] == phrase:
+            return True
+    return False
 
 
 async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple:
@@ -317,17 +401,30 @@ async def search_pdf_pages(memory: Any, question: str, limit: int = 10) -> tuple
         return ()
 
     query_terms = set(keywords)
+    for term in keywords:
+        query_terms.update(_EXPANSIONS.get(term, ()))
     stemmed_terms = {_stem(term) for term in query_terms}
     numeric_terms = {term for term in query_terms if term.isdigit()}
 
     scored: list[tuple[float, MemoryHit]] = []
     for hit in candidates.values():
-        page_terms = set(_tokenize(hit.text))
+        page_tokens = _tokenize(hit.text)
+        page_terms = set(page_tokens)
         page_stems = {_stem(term) for term in page_terms}
         overlap = len(query_terms & page_terms)
         stem_overlap = len(stemmed_terms & page_stems)
         number_overlap = len(numeric_terms & page_terms)
-        score = overlap * 4.0 + stem_overlap * 2.0 + number_overlap * 3.0 + min(max(hit.score, 0.0), 50.0) * 0.1
+        phrase_hits = sum(1 for phrase in _PHRASES if _contains_phrase(page_tokens, phrase))
+        normalized = " ".join(hit.text.casefold().split())
+        heading_hits = sum(1 for heading in _HEADINGS if heading in normalized)
+        score = (
+            overlap * 3.0
+            + stem_overlap * 2.0
+            + number_overlap * 3.0
+            + phrase_hits * 8.0
+            + heading_hits * 12.0
+            + min(max(hit.score, 0.0), 50.0) * 0.1
+        )
         scored.append((score, hit))
 
     scored.sort(key=lambda item: item[0], reverse=True)
