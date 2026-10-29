@@ -1,0 +1,21 @@
+{
+  "name": "stepfun-seekdb-kb",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "浏览器端侧向量化(量化) + seekdb 向量/全文混合检索 迷你知识库（阶跃星辰 × seekdb 赛题）",
+  "scripts": {
+    "fetch:assets": "node scripts/fetch-assets.mjs",
+    "dev:server": "node server/index.mjs",
+    "test:hybrid": "node scripts/test-hybrid.mjs",
+    "metrics": "node scripts/compute-metrics.mjs scripts/eval-ablation.json",
+    "app:install": "npm --prefix app install",
+    "app:dev": "npm --prefix app run dev",
+    "app:build": "npm --prefix app run build",
+    "app:preview": "npm --prefix app run preview"
+  },
+  "dependencies": {
+    "mysql2": "^3.24.6",
+    "seekdb": "^1.4.0"
+  }
+}

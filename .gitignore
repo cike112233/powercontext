@@ -4,3 +4,12 @@ dist/
 *.qoder.site
 .DS_Store
 qoder/tmp/
+
+# stepfun 端侧推理：大模型/wasm 二进制与临时文件不进仓库（用 scripts/fetch-assets.mjs 获取）
+stepfun/tmp/
+stepfun/spike/models/
+stepfun/spike/public/models/
+stepfun/spike/public/ort-wasm/
+*.onnx
+*.wasm
+*.log

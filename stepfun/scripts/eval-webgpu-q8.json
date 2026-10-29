@@ -1,0 +1,29 @@
+[
+  {
+    "config": "webgpu/q8",
+    "label": "混合检索 RRF（全文+向量双索引）",
+    "detail": true,
+    "perQuery": [
+      { "id": "q01", "k": 5, "relevant": ["d06"], "ranked": ["d06","d07","d35","d32","d33"] },
+      { "id": "q02", "k": 5, "relevant": ["d02"], "ranked": ["d02","d03","d39","d21","d22"] },
+      { "id": "q03", "k": 5, "relevant": ["d03"], "ranked": ["d03","d13","d02","d06","d40"] },
+      { "id": "q04", "k": 5, "relevant": ["d31"], "ranked": ["d31","d07","d33","d35","d28"] },
+      { "id": "q05", "k": 5, "relevant": ["d22"], "ranked": ["d22","d13","d09","d23","d38"] },
+      { "id": "q06", "k": 5, "relevant": ["d33"], "ranked": ["d33","d35","d28","d07","d34"] },
+      { "id": "q07", "k": 5, "relevant": ["d37"], "ranked": ["d37","d17","d11","d18","d31"] },
+      { "id": "q08", "k": 5, "relevant": ["d07"], "ranked": ["d07","d13","d14","d09","d15"] },
+      { "id": "q09", "k": 5, "relevant": ["d16"], "ranked": ["d16","d38","d11","d19","d23"] },
+      { "id": "q10", "k": 5, "relevant": ["d11"], "ranked": ["d11","d18","d30","d36","d16"] },
+      { "id": "q11", "k": 5, "relevant": ["d12"], "ranked": ["d12","d07","d13","d15","d04"] },
+      { "id": "q12", "k": 5, "relevant": ["d13"], "ranked": ["d23","d13","d14","d07","d20"] },
+      { "id": "q13", "k": 5, "relevant": ["d21"], "ranked": ["d21","d25","d40","d36","d19"] },
+      { "id": "q14", "k": 5, "relevant": ["d25"], "ranked": ["d25","d21","d22","d23","d15"] },
+      { "id": "q15", "k": 5, "relevant": ["d19"], "ranked": ["d19","d16","d20","d37","d15"] },
+      { "id": "q16", "k": 5, "relevant": ["d10"], "ranked": ["d10","d15","d22","d24","d30"] },
+      { "id": "q17", "k": 5, "relevant": ["d14"], "ranked": ["d14","d23","d25","d09","d07"] },
+      { "id": "q18", "k": 5, "relevant": ["d17","d18"], "ranked": ["d18","d16","d11","d22","d13"] },
+      { "id": "q19", "k": 5, "relevant": ["d17"], "ranked": ["d17","d08","d25","d18","d22"] },
+      { "id": "q20", "k": 5, "relevant": ["d30"], "ranked": ["d11","d26","d36","d30","d18"] }
+    ]
+  }
+]

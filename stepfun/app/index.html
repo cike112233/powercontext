@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>stepfun × seekdb · 端侧混合检索知识库</title>
+    <style>
+      :root {
+        --bg: #0f1117;
+        --panel: #171a23;
+        --panel-2: #1e2230;
+        --line: #2a2f40;
+        --text: #e6e9f0;
+        --muted: #94a0b8;
+        --accent: #5b8cff;
+        --ok: #37c98a;
+        --warn: #f0a63a;
+        --vec: #7cc4ff;
+        --fts: #f0c674;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+      }
+      header {
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      h1 { font-size: 18px; margin: 0; font-weight: 600; }
+      h1 small { color: var(--muted); font-weight: 400; margin-left: 8px; }
+      .banner { display: flex; gap: 10px; flex-wrap: wrap; }
+      .chip {
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 5px 13px;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .chip b { color: var(--text); font-weight: 600; }
+      .chip .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+      main { max-width: 1080px; margin: 0 auto; padding: 24px 28px 64px; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+      }
+      section h2 { font-size: 14px; margin: 0 0 12px; font-weight: 600; letter-spacing: .3px; }
+      section h2 span { color: var(--muted); font-weight: 400; margin-left: 8px; font-size: 12px; }
+      label { font-size: 12.5px; color: var(--muted); display: block; margin: 10px 0 4px; }
+      input, textarea, select {
+        width: 100%;
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 9px 11px;
+        font-size: 13.5px;
+        font-family: inherit;
+        resize: vertical;
+      }
+      textarea { min-height: 74px; }
+      .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+      .row > * { flex: 1; min-width: 120px; }
+      button {
+        background: var(--accent);
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 9px 16px;
+        font-size: 13.5px;
+        cursor: pointer;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      button.ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); }
+      button:disabled { opacity: .45; cursor: not-allowed; }
+      button:hover:not(:disabled) { filter: brightness(1.08); }
+      .progress { height: 6px; background: var(--panel-2); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+      .progress > i { display: block; height: 100%; width: 0; background: var(--ok); transition: width .15s; }
+      .log { font-size: 12px; color: var(--muted); margin-top: 8px; min-height: 18px; }
+      .results { margin-top: 6px; }
+      .hit {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        background: var(--panel-2);
+      }
+      .hit .top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+      .hit .title { font-weight: 600; font-size: 14px; }
+      .hit .id { color: var(--muted); font-size: 12px; }
+      .hit .text { color: #c6cdda; font-size: 12.8px; margin-top: 6px; }
+      .hit .scores { display: flex; gap: 8px; margin-top: 9px; flex-wrap: wrap; }
+      .tag { font-size: 11.5px; padding: 2px 9px; border-radius: 6px; border: 1px solid var(--line); }
+      .tag.rrf { color: var(--accent); }
+      .tag.fts { color: var(--fts); }
+      .tag.vec { color: var(--vec); }
+      .tag.both { color: var(--ok); border-color: var(--ok); }
+      .tag.rank { color: var(--muted); }
+      pre.explain {
+        background: #0b0d13; border: 1px solid var(--line); border-radius: 8px;
+        padding: 12px; overflow-x: auto; font-size: 12px; color: #a9d3a9; margin-top: 10px;
+      }
+      .hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+      a.dl { color: var(--accent); font-size: 12.5px; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>stepfun × seekdb <small>浏览器端侧向量推理 + 向量/全文混合检索</small></h1>
+      <div class="banner">
+        <div class="chip" id="chip-db"><span class="dot" style="background:#666"></span>后端 seekdb：检测中…</div>
+        <div class="chip" id="chip-infer"><span class="dot" style="background:#666"></span>推理引擎：未加载</div>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid">
+        <section>
+          <h2>① 推理引擎 <span>端侧 embedding（bge-small-zh-v1.5 · 512维）</span></h2>
+          <div class="row">
+            <div>
+              <label>量化精度 dtype</label>
+              <select id="dtype">
+                <option value="q8">q8（INT8 · 最省内存）</option>
+                <option value="fp32">fp32（原始 · 最高精度）</option>
+                <option value="fp16">fp16（半精度）</option>
+              </select>
+            </div>
+            <div>
+              <label>计算后端</label>
+              <select id="device">
+                <option value="gpu">优先 WebGPU</option>
+                <option value="wasm">仅用 WASM(CPU)</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:14px">
+            <button id="load-model">加载模型</button>
+            <button class="ghost" id="refresh-status">刷新后端状态</button>
+          </div>
+          <div class="log" id="load-log"></div>
+        </section>
+
+        <section>
+          <h2>② 导入知识库 <span>浏览器向量化 → 写入 seekdb</span></h2>
+          <div class="row">
+            <button id="seed" class="ghost">导入评测语料（40 篇）</button>
+          </div>
+          <div class="progress"><i id="seed-bar"></i></div>
+          <div class="log" id="seed-log"></div>
+          <label style="margin-top:14px">或手动添加一篇</label>
+          <input id="m-title" placeholder="标题" />
+          <textarea id="m-doc" placeholder="正文……"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button id="manual-add" class="ghost">添加</button>
+          </div>
+          <div class="log" id="add-log"></div>
+        </section>
+      </div>
+
+      <section>
+        <h2>③ 混合检索 <span>全文(MATCH…AGAINST) + 向量(cosine HNSW) → RRF 融合</span></h2>
+        <div class="row">
+          <input id="query" placeholder="输入查询，例如：两阶段提交里协调者宕机会怎样" />
+          <button id="search" style="flex:0 0 auto">搜索</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <label style="margin:0">结果数 K</label>
+          <select id="limit" style="max-width:90px">
+            <option>3</option><option selected>5</option><option>10</option>
+          </select>
+          <label style="margin:0;display:flex;align-items:center;gap:6px;max-width:220px">
+            <input type="checkbox" id="show-explain" style="width:auto" /> 展示 EXPLAIN（双索引证据）
+          </label>
+        </div>
+        <div class="log" id="search-log"></div>
+        <div class="results" id="results"></div>
+        <pre class="explain" id="explain" style="display:none"></pre>
+      </section>
+
+      <section>
+        <h2>④ 评测数据导出 <span>供 Recall@K / NDCG@K 脚本复用</span></h2>
+        <p class="hint">在浏览器端把 40 篇语料 + 20 条查询全部向量化，导出 JSON（含 512 维向量），Node 评测脚本据此写入 seekdb 并计算指标。</p>
+        <button id="export" class="ghost">导出端侧向量 JSON</button>
+        <div class="progress"><i id="export-bar"></i></div>
+        <div class="log" id="export-log"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
