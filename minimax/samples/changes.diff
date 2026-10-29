@@ -1,0 +1,54 @@
+--- a/billing/legacy_pricing.py
++++ b/billing/legacy_pricing.py
+@@ -73,36 +73,43 @@
+     return 0.0
+ 
+ 
++def _discount_amount(amount: float) -> float:
++    return round(amount * _discount_rate(amount), 2)
++
++
+ def _shipping_base(amount: float, region: str) -> float:
+     if amount >= FREE_SHIPPING_THRESHOLD:
+         return 0.0
+     return REGION_RATES.get(region, REGION_RATES["domestic"])
+ 
+ 
++def _shipping_amount(amount: float, region: str) -> float:
++    base = _shipping_base(amount, region)
++    surcharge = REGION_SURCHARGE.get(region, 0.0)
++    return round(base + surcharge, 2)
++
++
+ def tiered_discount(amount: float) -> float:
+     """Return the discount amount for a gross order amount."""
+-    return round(amount * _discount_rate(amount), 2)
++    return _discount_amount(amount)
+ 
+ 
+ def discounted_total(amount: float, region: str = "domestic") -> float:
+     """Return the discounted amount, ignoring shipping."""
+-    discount = round(amount * _discount_rate(amount), 2)
++    discount = _discount_amount(amount)
+     surcharge = REGION_SURCHARGE.get(region, 0.0)
+     return round(amount - discount + surcharge, 2)
+ 
+ 
+ def shipping_fee(amount: float, region: str = "domestic") -> float:
+     """Return the shipping fee for an order."""
+-    base = _shipping_base(amount, region)
+-    surcharge = REGION_SURCHARGE.get(region, 0.0)
+-    return round(base + surcharge, 2)
++    return _shipping_amount(amount, region)
+ 
+ 
+ def compute_invoice(lines: Iterable[InvoiceLine], region: str = "domestic") -> Invoice:
+     """Build a full invoice for the given lines."""
+     collected = list(lines)
+     subtotal = round(sum(line.amount for line in collected), 2)
+-    discount = round(subtotal * _discount_rate(subtotal), 2)
+-    base = _shipping_base(subtotal, region)
+-    shipping = round(base + REGION_SURCHARGE.get(region, 0.0), 2)
++    discount = _discount_amount(subtotal)
++    shipping = _shipping_amount(subtotal, region)
+     return Invoice(lines=collected, region=region, discount=discount, shipping=shipping)

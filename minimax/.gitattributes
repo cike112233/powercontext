@@ -1,0 +1,13 @@
+# 评测环境为 Linux：shell 脚本必须以 LF 结尾，否则 shebang 会报
+# "bad interpreter: /usr/bin/env bash^M"。这里显式锁定换行符，
+# 避免任何 Windows 贡献者把 CRLF 提交进仓库。
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.ini text eol=lf
+*.txt text eol=lf
+*.diff text eol=lf
+*.jsonl text eol=lf

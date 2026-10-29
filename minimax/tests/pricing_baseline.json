@@ -1,0 +1,357 @@
+{
+  "amounts": {
+    "0.0": {
+      "discounted_total": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "shipping_fee": {
+        "domestic": 8.0,
+        "international": 57.0,
+        "remote": 20.0,
+        "unknown-region": 8.0
+      },
+      "tiered_discount": 0.0
+    },
+    "1.0": {
+      "discounted_total": {
+        "domestic": 1.0,
+        "international": 13.0,
+        "remote": 3.0,
+        "unknown-region": 1.0
+      },
+      "shipping_fee": {
+        "domestic": 8.0,
+        "international": 57.0,
+        "remote": 20.0,
+        "unknown-region": 8.0
+      },
+      "tiered_discount": 0.0
+    },
+    "100.0": {
+      "discounted_total": {
+        "domestic": 100.0,
+        "international": 112.0,
+        "remote": 102.0,
+        "unknown-region": 100.0
+      },
+      "shipping_fee": {
+        "domestic": 8.0,
+        "international": 57.0,
+        "remote": 20.0,
+        "unknown-region": 8.0
+      },
+      "tiered_discount": 0.0
+    },
+    "12345.67": {
+      "discounted_total": {
+        "domestic": 11728.39,
+        "international": 11740.39,
+        "remote": 11730.39,
+        "unknown-region": 11728.39
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 617.28
+    },
+    "1999.99": {
+      "discounted_total": {
+        "domestic": 1979.99,
+        "international": 1991.99,
+        "remote": 1981.99,
+        "unknown-region": 1979.99
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 20.0
+    },
+    "2000.0": {
+      "discounted_total": {
+        "domestic": 1940.0,
+        "international": 1952.0,
+        "remote": 1942.0,
+        "unknown-region": 1940.0
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 60.0
+    },
+    "299.99": {
+      "discounted_total": {
+        "domestic": 299.99,
+        "international": 311.99,
+        "remote": 301.99,
+        "unknown-region": 299.99
+      },
+      "shipping_fee": {
+        "domestic": 8.0,
+        "international": 57.0,
+        "remote": 20.0,
+        "unknown-region": 8.0
+      },
+      "tiered_discount": 0.0
+    },
+    "300.0": {
+      "discounted_total": {
+        "domestic": 300.0,
+        "international": 312.0,
+        "remote": 302.0,
+        "unknown-region": 300.0
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 0.0
+    },
+    "499.99": {
+      "discounted_total": {
+        "domestic": 499.99,
+        "international": 511.99,
+        "remote": 501.99,
+        "unknown-region": 499.99
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 0.0
+    },
+    "4999.99": {
+      "discounted_total": {
+        "domestic": 4849.99,
+        "international": 4861.99,
+        "remote": 4851.99,
+        "unknown-region": 4849.99
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 150.0
+    },
+    "500.0": {
+      "discounted_total": {
+        "domestic": 495.0,
+        "international": 507.0,
+        "remote": 497.0,
+        "unknown-region": 495.0
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 5.0
+    },
+    "5000.0": {
+      "discounted_total": {
+        "domestic": 4750.0,
+        "international": 4762.0,
+        "remote": 4752.0,
+        "unknown-region": 4750.0
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 250.0
+    },
+    "99999.99": {
+      "discounted_total": {
+        "domestic": 94999.99,
+        "international": 95011.99,
+        "remote": 95001.99,
+        "unknown-region": 94999.99
+      },
+      "shipping_fee": {
+        "domestic": 0.0,
+        "international": 12.0,
+        "remote": 2.0,
+        "unknown-region": 0.0
+      },
+      "tiered_discount": 5000.0
+    }
+  },
+  "invoices": {
+    "": {
+      "domestic": {
+        "discount": 0.0,
+        "shipping": 8.0,
+        "subtotal": 0,
+        "total": 8.0
+      },
+      "international": {
+        "discount": 0.0,
+        "shipping": 57.0,
+        "subtotal": 0,
+        "total": 57.0
+      },
+      "remote": {
+        "discount": 0.0,
+        "shipping": 20.0,
+        "subtotal": 0,
+        "total": 20.0
+      },
+      "unknown-region": {
+        "discount": 0.0,
+        "shipping": 8.0,
+        "subtotal": 0,
+        "total": 8.0
+      }
+    },
+    "A-1:10:600.0": {
+      "domestic": {
+        "discount": 300.0,
+        "shipping": 0.0,
+        "subtotal": 6000.0,
+        "total": 5700.0
+      },
+      "international": {
+        "discount": 300.0,
+        "shipping": 12.0,
+        "subtotal": 6000.0,
+        "total": 5712.0
+      },
+      "remote": {
+        "discount": 300.0,
+        "shipping": 2.0,
+        "subtotal": 6000.0,
+        "total": 5702.0
+      },
+      "unknown-region": {
+        "discount": 300.0,
+        "shipping": 0.0,
+        "subtotal": 6000.0,
+        "total": 5700.0
+      }
+    },
+    "A-1:1:100.0": {
+      "domestic": {
+        "discount": 0.0,
+        "shipping": 8.0,
+        "subtotal": 100.0,
+        "total": 108.0
+      },
+      "international": {
+        "discount": 0.0,
+        "shipping": 57.0,
+        "subtotal": 100.0,
+        "total": 157.0
+      },
+      "remote": {
+        "discount": 0.0,
+        "shipping": 20.0,
+        "subtotal": 100.0,
+        "total": 120.0
+      },
+      "unknown-region": {
+        "discount": 0.0,
+        "shipping": 8.0,
+        "subtotal": 100.0,
+        "total": 108.0
+      }
+    },
+    "A-1:1:300.0|B-2:2:125.5": {
+      "domestic": {
+        "discount": 5.51,
+        "shipping": 0.0,
+        "subtotal": 551.0,
+        "total": 545.49
+      },
+      "international": {
+        "discount": 5.51,
+        "shipping": 12.0,
+        "subtotal": 551.0,
+        "total": 557.49
+      },
+      "remote": {
+        "discount": 5.51,
+        "shipping": 2.0,
+        "subtotal": 551.0,
+        "total": 547.49
+      },
+      "unknown-region": {
+        "discount": 5.51,
+        "shipping": 0.0,
+        "subtotal": 551.0,
+        "total": 545.49
+      }
+    },
+    "A-1:2:40.0": {
+      "domestic": {
+        "discount": 0.0,
+        "shipping": 8.0,
+        "subtotal": 80.0,
+        "total": 88.0
+      },
+      "international": {
+        "discount": 0.0,
+        "shipping": 57.0,
+        "subtotal": 80.0,
+        "total": 137.0
+      },
+      "remote": {
+        "discount": 0.0,
+        "shipping": 20.0,
+        "subtotal": 80.0,
+        "total": 100.0
+      },
+      "unknown-region": {
+        "discount": 0.0,
+        "shipping": 8.0,
+        "subtotal": 80.0,
+        "total": 88.0
+      }
+    },
+    "C-3:7:19.99|D-4:1:4999.0": {
+      "domestic": {
+        "discount": 256.95,
+        "shipping": 0.0,
+        "subtotal": 5138.93,
+        "total": 4881.98
+      },
+      "international": {
+        "discount": 256.95,
+        "shipping": 12.0,
+        "subtotal": 5138.93,
+        "total": 4893.98
+      },
+      "remote": {
+        "discount": 256.95,
+        "shipping": 2.0,
+        "subtotal": 5138.93,
+        "total": 4883.98
+      },
+      "unknown-region": {
+        "discount": 256.95,
+        "shipping": 0.0,
+        "subtotal": 5138.93,
+        "total": 4881.98
+      }
+    }
+  }
+}
