@@ -164,7 +164,7 @@ def _build_hybrid_sql(*, tagged: bool) -> str:
         tag_sql=tag_sql_m,
         approx="" if tagged else " APPROXIMATE",
     )
-    return f"{fts_branch}\nUNION ALL\n{vector_branch}"
+    return f"({fts_branch})\nUNION ALL\n({vector_branch})"
 
 
 class OceanBaseMemoryFTSIndex:
