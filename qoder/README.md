@@ -3,7 +3,7 @@
 面向学生与研究者的科研知识管理 + 语义检索工具，使用 **Qoder 完成全流程开发**，通过 **Qoder Sites** 发布到公网。
 
 - 线上站点：<https://smart-research-assistant-fw82jxidbol.qoder.zone>
-- 代码仓库：<https://github.com/cike112233/powercontext>（分支 `main`）
+- 代码仓库：<https://github.com/cike112233/powercontext>（分支 `2026-competition-ecosystem`，本项目位于 `qoder/` 子目录）
 
 ## 功能
 
@@ -95,15 +95,48 @@ npm run dev
 自检：`curl http://127.0.0.1:3001/api/status` 返回 `{"connected":true,"backend":"seekdb",...}`；
 页面顶部状态条会显示「后端: seekdb 向量数据库（本地实例）」。
 
-### 方式四：自托管 seekdb 供公网访问
+### 方式四：Cloudflare 隧道桥接（评审演示 · 真实调用 seekdb）
 
-```sh
-# 在有公网 IP 的 Linux 服务器上以 root 执行（安装 Docker + seekdb + Node22，systemd 托管 API）
-bash deploy/setup-ecs.sh
-# 云控制台安全组只放行 TCP 3001，不要放行 2881
+**目标**：让线上发布站点在评审期间真实调用 seekdb（HNSW 索引 + 自动向量化 + `search_logs` 落库），
+不需要任何云服务器/ECS 学生券。原理是本地跑 seekdb + Node API + Cloudflare quick tunnel，
+Function 层把 `/api/*` 转发到隧道暴露的公网 HTTPS URL。
+
+**一次性准备**（Windows）：
+
+```powershell
+# 1. 安装 cloudflared（如未装）
+winget install --id Cloudflare.cloudflared
+
+# 2. 首次拉取 seekdb 镜像（可选，脚本会自动拉）
+docker pull oceanbase/seekdb:latest
 ```
 
-之后可将 Function 改为转发到该服务器地址（需自行配置服务端 Secret，仓库中只保留占位值）。
+**每次评审前的启动流程**：
+
+```sh
+# 终端 A：一键起 Docker seekdb + Node API + Cloudflare 隧道
+cd qoder
+bash scripts/start-seekdb-bridge.sh
+# 或者： npm run bridge:seekdb
+# 终端会输出：  https://xxxx-yyyy-zzzz.trycloudflare.com  ← 复制这个 URL
+
+# 终端 B：把 URL 填入 Function 常量，重新构建 + 发布
+#   1) 打开 qoder/functions/index.ts
+#   2) 修改这一行： const SEEKDB_PROXY_URL = "https://xxxx-yyyy-zzzz.trycloudflare.com";
+#   3) pnpm run build
+#   4) 让 Qoder 重新发布站点（同 projectId / siteId / 域名不变）
+```
+
+发布后打开站点，SearchPage 顶部状态条会显示
+「**后端: seekdb 向量数据库（本地实例） | 数据表: knowledge_base | 检索算法: HNSW 索引 + seekdb 自动向量化**」，
+即证明评审访问的是真实 seekdb 而不是 Sites 私有数据库。
+
+**注意事项**：
+
+- Cloudflare quick tunnel 每次重启 URL 会变；如需保持稳定，可在评审期间保持 `start-seekdb-bridge.sh` 终端一直打开、笔记本不休眠
+- 关掉终端 → 隧道断 → 站点回退到"演示模式"或返回 502；重新起脚本 + 更新常量 + 再发布即可恢复
+- 本地首次启动 seekdb 会自动建 collection 并导入 8 条示例数据；`search_logs` 表也在首次连接时创建
+- 提交 commit 时请把 `SEEKDB_PROXY_URL` 常量清空回 `""`，不要把一次性隧道 URL 提交进仓库
 
 ### seekdb 连接配置（本地模式，均为占位值，不含真实凭据）
 
@@ -173,8 +206,9 @@ curl 'https://smart-research-assistant-fw82jxidbol.qoder.zone/functions/v1/app/a
 
 本项目全程使用 Qoder 开发：需求拆解、UI 组件实现、seekdb SDK 集成、Function 业务路由编写、
 数据库迁移（建表 + 索引）、发布与线上验证、以及多次评审反馈的修复（移动端导航、组件 Hook 误用、
-控制台报错、静态站点无法承载真实后端 → 改为 Sites Function + 私有数据库架构）均在 Qoder 会话中完成，
-提交历史见仓库 `main` 分支。
+控制台报错、静态站点无法承载真实后端 → 改为 Sites Function + 私有数据库架构、SPA 路由不生效 →
+读取 URL pathname、Cloudflare 隧道桥接让评审真实访问 seekdb）均在 Qoder 会话中完成，
+提交历史见仓库 `2026-competition-ecosystem` 分支。
 
 ---
 

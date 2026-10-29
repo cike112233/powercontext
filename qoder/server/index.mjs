@@ -170,6 +170,13 @@ const server = createServer(async (req, res) => {
 
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
+  // GET /api/health - 健康检查（供 Sites Function 桥接使用）
+  if (url.pathname === "/api/health" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ ok: true, backend: "seekdb", collection: COLLECTION_NAME }));
+    return;
+  }
+
   // GET /api/status - seekdb 连接状态
   if (url.pathname === "/api/status" && req.method === "GET") {
     const connected = client?.isConnected() ?? false;

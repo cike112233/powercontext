@@ -14,7 +14,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "dev:function": "node dev/function-local.mjs",
     "test:function": "node dev/function-test.mjs",
-    "dev:seekdb": "node server/index.mjs"
+    "dev:seekdb": "node server/index.mjs",
+    "bridge:seekdb": "bash scripts/start-seekdb-bridge.sh"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
