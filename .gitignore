@@ -3,3 +3,4 @@ dist/
 .vite/
 *.qoder.site
 .DS_Store
+qoder/tmp/

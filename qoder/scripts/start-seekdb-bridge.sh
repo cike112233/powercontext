@@ -22,36 +22,86 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 PROJECT_ROOT="$(pwd)"
 
+# Windows: 自动把 Docker Desktop / cloudflared 的安装路径加入 PATH（不改系统配置）
+if [[ "$OS" == "Windows_NT" ]] 2>/dev/null || uname -s | grep -q MINGW; then
+  for candidate in \
+    "/c/Users/$USERNAME/AppData/Local/Programs/DockerDesktop/resources/bin" \
+    "/c/Program Files/Docker/Docker/resources/bin" \
+    "/c/Program Files/cloudflared/bin" \
+    "/c/Users/$USERNAME/AppData/Local/cloudflared" \
+    "/d"; do
+    if [[ -d "$candidate" ]]; then
+      export PATH="$candidate:$PATH"
+    fi
+  done
+  # 兼容用户把 cloudflared-windows-amd64.exe 直接放在某目录里的情况
+  if ! command -v cloudflared >/dev/null 2>&1; then
+    for cand in /d/cloudflared-windows-amd64.exe "/c/Users/$USERNAME/Downloads/cloudflared-windows-amd64.exe"; do
+      if [[ -x "$cand" ]]; then
+        mkdir -p /tmp/bin
+        cp "$cand" /tmp/bin/cloudflared.exe
+        export PATH="/tmp/bin:$PATH"
+        break
+      fi
+    done
+  fi
+fi
+
 echo "=========================================="
 echo " 智能科研助手 · seekdb 桥接启动"
 echo "=========================================="
 
 # 1. 检查 Docker
+if ! command -v docker >/dev/null 2>&1; then
+  echo "❌ 未找到 docker 命令。请确认 Docker Desktop 已安装（当前 shell 已尝试自动加入常见安装路径）。"
+  echo "   下载：https://www.docker.com/products/docker-desktop/"
+  exit 1
+fi
 if ! docker info >/dev/null 2>&1; then
-  echo "❌ Docker 未运行，请先启动 Docker Desktop。"
+  echo "❌ Docker Desktop 未启动或引擎未就绪。请打开 Docker Desktop，等右下角鲸鱼图标显示绿色 'Engine running'。"
   exit 1
 fi
 
 # 2. 启动 seekdb 容器
+# 兼容国内镜像源：用户可能把镜像拉成了 `docker.1ms.run/oceanbase/seekdb:latest` 等带前缀的 tag，
+# 自动 retag 到规范名 oceanbase/seekdb:latest。
+if ! docker image inspect oceanbase/seekdb:latest >/dev/null 2>&1; then
+  mirror_tag=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '(^|/)seekdb:latest$' | head -1 || true)
+  if [[ -n "$mirror_tag" ]]; then
+    echo "🔁 发现镜像 $mirror_tag，retag 为 oceanbase/seekdb:latest"
+    docker tag "$mirror_tag" oceanbase/seekdb:latest
+  fi
+fi
+if ! docker image inspect oceanbase/seekdb:latest >/dev/null 2>&1; then
+  echo "❌ 本机没有 oceanbase/seekdb 镜像。请先手动执行："
+  echo "   docker pull docker.1ms.run/oceanbase/seekdb:latest"
+  echo "   （国内可直连的镜像源；不要用裸 docker pull，Docker Hub 常被封）"
+  exit 1
+fi
+
 if docker ps --format '{{.Names}}' | grep -q '^seekdb$'; then
   echo "✅ seekdb 容器已在运行"
 elif docker ps -a --format '{{.Names}}' | grep -q '^seekdb$'; then
   echo "🚀 启动已存在的 seekdb 容器..."
   docker start seekdb >/dev/null
 else
-  echo "🚀 首次运行，拉取并启动 seekdb 镜像..."
+  echo "🚀 首次启动 seekdb 容器..."
   docker run -d --name seekdb -p 127.0.0.1:2881:2881 oceanbase/seekdb
 fi
 
-# 等待 seekdb 就绪
-echo "⏳ 等待 seekdb 就绪（约 15s）..."
-for i in {1..30}; do
-  if docker exec seekdb obclient -h127.0.0.1 -P2881 -uroot -e "SELECT 1" >/dev/null 2>&1 \
-     || nc -z 127.0.0.1 2881 2>/dev/null; then
+# 等待 seekdb 就绪（用 docker exec 检查端口，比 nc 更可移植）
+echo "⏳ 等待 seekdb 就绪（约 15-30s，首次启动了引擎要初始化）..."
+for i in {1..60}; do
+  if docker exec seekdb bash -c 'timeout 1 bash -c "</dev/tcp/127.0.0.1/2881"' >/dev/null 2>&1; then
     echo "✅ seekdb 已就绪"
     break
   fi
-  sleep 1
+  if [[ $i -eq 60 ]]; then
+    echo "❌ 等待 60 秒后 seekdb 端口仍未就绪，可能镜像在慢速拉取或首次启动初始化中。"
+    echo "   手动检查：docker logs seekdb"
+    exit 1
+  fi
+  sleep 2
 done
 
 # 3. 检查 cloudflared
@@ -92,7 +142,7 @@ echo ""
 echo "拿到 URL 后的操作："
 echo "   1. 打开 qoder/functions/index.ts"
 echo "   2. 把常量 SEEKDB_PROXY_URL 改成刚才的 https URL"
-echo "   3. 运行 pnpm run build"
+echo "   3. 运行 npm run build"
 echo "   4. 让 Qoder 重新发布站点（同 siteId / projectId 不变）"
 echo "   5. 保持本终端窗口打开，评审期间不能关"
 echo "=========================================="

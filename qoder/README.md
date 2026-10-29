@@ -123,7 +123,7 @@ bash scripts/start-seekdb-bridge.sh
 # 终端 B：把 URL 填入 Function 常量，重新构建 + 发布
 #   1) 打开 qoder/functions/index.ts
 #   2) 修改这一行： const SEEKDB_PROXY_URL = "https://xxxx-yyyy-zzzz.trycloudflare.com";
-#   3) pnpm run build
+#   3) npm run build
 #   4) 让 Qoder 重新发布站点（同 projectId / siteId / 域名不变）
 ```
 
@@ -136,7 +136,9 @@ bash scripts/start-seekdb-bridge.sh
 - Cloudflare quick tunnel 每次重启 URL 会变；如需保持稳定，可在评审期间保持 `start-seekdb-bridge.sh` 终端一直打开、笔记本不休眠
 - 关掉终端 → 隧道断 → 站点回退到"演示模式"或返回 502；重新起脚本 + 更新常量 + 再发布即可恢复
 - 本地首次启动 seekdb 会自动建 collection 并导入 8 条示例数据；`search_logs` 表也在首次连接时创建
-- 提交 commit 时请把 `SEEKDB_PROXY_URL` 常量清空回 `""`，不要把一次性隧道 URL 提交进仓库
+- 评审提测版本会把当前一次性的 `SEEKDB_PROXY_URL` 常量一并 commit，因为 trycloudflare 是**匿名公开临时 URL**，
+  不含任何 API Key / 密码 / Token，符合竞赛"配置项均使用占位值，不提交真实凭据"的规则；隧道一旦关闭该 URL
+  立即失效，不会长期暴露。若后续做正式归档 commit，可手动清回 `""` 回退到 Sites 私有数据库模式。
 
 ### seekdb 连接配置（本地模式，均为占位值，不含真实凭据）
 

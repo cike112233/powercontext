@@ -16,6 +16,39 @@ import { SeekdbClient } from "seekdb";
 
 const PORT = 3001;
 const COLLECTION_NAME = "knowledge_base";
+const EMBED_DIM = 128;
+
+// 确定性哈希向量嵌入：把文本按 UTF-8 字节 3-gram 哈希到 EMBED_DIM 维并 L2 归一化。
+// 用于喂给 seekdb 的 HNSW 索引——真正跑向量检索的是 seekdb 本身，嵌入函数只是可插拔适配器。
+const hashEmbedding = {
+  name: "hash-tns-128",
+  dimension: EMBED_DIM,
+  async generate(texts) {
+    return texts.map((text) => {
+      const vec = new Array(EMBED_DIM).fill(0);
+      const buf = Buffer.from(String(text), "utf-8");
+      for (let i = 0; i < buf.length; i++) {
+        for (let w = 1; w <= 3 && i + w <= buf.length; w++) {
+          let h = 2166136261;
+          for (let j = 0; j < w; j++) {
+            h ^= buf[i + j];
+            h = Math.imul(h, 16777619);
+          }
+          const idx = ((h >>> 0) % EMBED_DIM) | 0;
+          const sign = ((h >>> 16) & 1) === 1 ? 1 : -1;
+          vec[idx] += sign;
+        }
+      }
+      let norm = 0;
+      for (const v of vec) norm += v * v;
+      norm = Math.sqrt(norm) || 1;
+      return vec.map((v) => v / norm);
+    });
+  },
+  getConfig() {
+    return { name: "hash-tns-128", dimension: EMBED_DIM };
+  },
+};
 
 // seekdb 客户端
 let client = null;
@@ -86,18 +119,42 @@ const SAMPLE_ENTRIES = [
 async function initSeekdb() {
   console.log("[seekdb] 连接 seekdb (127.0.0.1:2881)...");
 
+  // 1) bootstrap 连接（不带 database，因为目标库可能不存在，mysql2 会 USE 失败）
+  const bootstrap = new SeekdbClient({
+    host: "127.0.0.1",
+    port: 2881,
+    user: "root",
+    password: "",
+    charset: "utf8mb4",
+  });
+  try {
+    await bootstrap.execute("SELECT 1");
+  } catch (err) {
+    console.error("[seekdb] 连接失败：", err.message);
+    return false;
+  }
+
+  // 2) 建库（IF NOT EXISTS）
+  try {
+    const dbs = await bootstrap.listDatabases();
+    if (!dbs.some((d) => d.name === "research_assistant")) {
+      await bootstrap.createDatabase("research_assistant");
+      console.log("[seekdb] 数据库 research_assistant 已创建");
+    }
+  } catch (err) {
+    console.warn("[seekdb] 建库跳过：", err.message);
+  }
+  await bootstrap.close();
+
+  // 3) 正式客户端（带 database）
   client = new SeekdbClient({
     host: "127.0.0.1",
     port: 2881,
     user: "root",
     password: "",
     database: "research_assistant",
+    charset: "utf8mb4",
   });
-
-  if (!client.isConnected()) {
-    console.error("[seekdb] 连接失败，请确保 seekdb 已启动");
-    return false;
-  }
 
   console.log("[seekdb] 连接成功");
 
@@ -118,8 +175,8 @@ async function initSeekdb() {
 
   // 创建或获取 collection
   if (!(await client.hasCollection(COLLECTION_NAME))) {
-    collection = await client.createCollection({ name: COLLECTION_NAME });
-    console.log(`[seekdb] Collection "${COLLECTION_NAME}" 创建成功`);
+    collection = await client.createCollection({ name: COLLECTION_NAME, embeddingFunction: hashEmbedding });
+    console.log(`[seekdb] Collection "${COLLECTION_NAME}" 创建成功（HNSW 索引 + 哈希向量嵌入 ${EMBED_DIM} 维）`);
 
     // 导入示例数据
     await collection.add({
@@ -135,7 +192,7 @@ async function initSeekdb() {
     await collection.refresh_index();
     console.log(`[seekdb] 导入 ${SAMPLE_ENTRIES.length} 条示例数据`);
   } else {
-    collection = await client.getCollection({ name: COLLECTION_NAME });
+    collection = await client.getCollection({ name: COLLECTION_NAME, embeddingFunction: hashEmbedding });
     const count = await collection.count();
     console.log(`[seekdb] Collection 已存在，共 ${count} 条数据`);
   }
@@ -249,8 +306,9 @@ const server = createServer(async (req, res) => {
     req.on("end", async () => {
       try {
         const entry = JSON.parse(body);
+        const id = entry.id || String(Date.now());
         await collection.add({
-          ids: [entry.id],
+          ids: [id],
           documents: [`${entry.title}\n${entry.content}`],
           metadatas: [
             {
@@ -264,7 +322,7 @@ const server = createServer(async (req, res) => {
         await collection.refresh_index();
 
         res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ success: true, id: entry.id }));
+        res.end(JSON.stringify({ success: true, id }));
       } catch (err) {
         res.writeHead(500, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: err.message }));
