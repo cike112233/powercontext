@@ -1,0 +1,443 @@
+app:
+  description: 面向技术求职的面试陪练官。知识库与检索全部落在本机真实 seekdb（OceanBase 单机版）：知识库节点走 Dify 原生 seekdb
+    混合检索，另挂一个自研 seekdb 全文+向量 RRF 检索工具做双保险与消融对照。
+  icon: 🎙️
+  icon_background: '#DBEAFE'
+  icon_type: emoji
+  mode: advanced-chat
+  name: seekdb 面试陪练官
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: package
+  value:
+    plugin_unique_identifier: langgenius/deepseek:0.0.26@13054d76c30f8b8a6a1a4fdd6b3463adeb060d57e1bc2b6fd925443654c90ddb
+    version: null
+kind: app
+site:
+  chat_color_theme: null
+  chat_color_theme_inverted: false
+  copyright: null
+  custom_disclaimer: ''
+  default_language: zh-Hans
+  description: null
+  icon: 🎙️
+  icon_background: '#DBEAFE'
+  icon_type: emoji
+  input_placeholder: null
+  privacy_policy: null
+  show_workflow_steps: true
+  title: seekdb 面试陪练官
+  use_icon_as_answer_icon: false
+version: 0.7.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions: []
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: '我是基于 seekdb 知识库的面试陪练官。你可以直接抛一个技术点（例如"MySQL 索引失效"），我会像真面试官一样连环追问。
+
+      想切换 seekdb 的检索方式，把开关写在句子最前面：「纯向量：…」只走 HNSW 向量，「全文：…」只走 ik 倒排，不写就默认混合检索；句子里带上「证据」，我会把
+      seekdb 的 EXPLAIN 执行计划贴给你。每轮结尾那行「检索小结」由检索服务直接给出，不是我估的。'
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions:
+    - 帮我从数据库方向开始模拟一面，先问一道中级题
+    - InnoDB 的 MVCC 是怎么保证一致性读的？
+    - 纯向量：连接池 maxLifetime 要小于哪个服务端参数？
+    - 全文：如何用 EXPLAIN 判断走没走索引？
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: start
+        targetType: code
+      id: edge-start-mode
+      source: '1000000000001'
+      sourceHandle: source
+      target: '1000000000002'
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: knowledge-retrieval
+      id: edge-mode-kr
+      source: '1000000000002'
+      sourceHandle: source
+      target: '1000000000003'
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: tool
+      id: edge-mode-tool
+      source: '1000000000002'
+      sourceHandle: source
+      target: '1000000000004'
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: code
+      id: edge-kr-summary
+      source: '1000000000003'
+      sourceHandle: source
+      target: '1000000000007'
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: tool
+        targetType: code
+      id: edge-tool-summary
+      source: '1000000000004'
+      sourceHandle: source
+      target: '1000000000007'
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: llm
+      id: edge-summary-llm
+      source: '1000000000007'
+      sourceHandle: source
+      target: '1000000000005'
+      targetHandle: target
+      type: custom
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: edge-llm-answer
+      source: '1000000000005'
+      sourceHandle: source
+      target: '1000000000006'
+      targetHandle: target
+      type: custom
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables: []
+      height: 54
+      id: '1000000000001'
+      position:
+        x: 60
+        y: 280
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        code: "def main(text: str) -> dict:\n    q = (text or \"\").strip()\n    mode,\
+          \ clean = \"hybrid\", q\n    sep = \" ：:，,、。;\"\n    # 模式词只认\"句首\"：写在句子中间的\"\
+          向量/全文\"是题目内容，不能拿它当开关。\n    # 强关键词（纯向量/纯全文/关键词）本身已无歧义，句首出现即生效；\n    # 弱关键词（向量/全文）必须紧跟分隔符才算开关，避免\"\
+          向量数据库怎么选型\"被误判成纯向量。\n    strong = ((\"纯向量\", \"vector\"), (\"只走向量\", \"\
+          vector\"), (\"仅向量\", \"vector\"),\n              (\"纯全文\", \"fts\"), (\"\
+          只走全文\", \"fts\"), (\"仅全文\", \"fts\"), (\"关键词\", \"fts\"))\n    weak = ((\"\
+          向量\", \"vector\"), (\"全文\", \"fts\"))\n    for kw, m in strong:\n      \
+          \  if q.startswith(kw):\n            mode, clean = m, q[len(kw):].strip(sep)\n\
+          \            break\n    if mode == \"hybrid\":\n        for kw, m in weak:\n\
+          \            if q.startswith(kw) and (len(q) == len(kw) or q[len(kw)] in\
+          \ sep):\n                mode, clean = m, q[len(kw):].strip(sep)\n     \
+          \           break\n    want = \"证据\" in q or \"执行计划\" in q or \"explain\"\
+          \ in q.lower()\n    explain = \"true\" if want else \"false\"\n    if want:\n\
+          \        # \"证据：\" 这类前缀只是索取开关，留在检索句子里会污染全文通道打分\n        for kw in (\"给我看这轮的检索证据\"\
+          , \"这轮的检索证据\", \"检索证据\", \"看证据\", \"给我证据\", \"证据\"):\n            for p\
+          \ in (kw + \"：\", kw + \":\", kw + \" \", kw):\n                if clean.startswith(p):\n\
+          \                    clean = clean[len(p):].strip(sep)\n               \
+          \     break\n            else:\n                continue\n            break\n\
+          \    clean = clean or q\n    label = {\"hybrid\": \"混合检索（ik 全文 + HNSW 向量\
+          \ + RRF 融合）\",\n             \"vector\": \"纯向量检索（只走 HNSW）\",\n         \
+          \    \"fts\": \"纯全文检索（只走 ik 倒排）\"}[mode]\n    return {\"mode\": mode, \"\
+          clean_query\": clean, \"explain\": explain, \"mode_label\": label}"
+        code_language: python3
+        desc: 从用户这句话里解析检索模式（hybrid/vector/fts）与要不要输出执行计划
+        outputs:
+          clean_query:
+            children: null
+            type: string
+          explain:
+            children: null
+            type: string
+          mode:
+            children: null
+            type: string
+          mode_label:
+            children: null
+            type: string
+        selected: false
+        title: 模式路由
+        type: code
+        variables:
+        - value_selector:
+          - sys
+          - query
+          variable: text
+      height: 80
+      id: '1000000000002'
+      position:
+        x: 340
+        y: 280
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        dataset_ids:
+        - LYSK7eHX2hu6pic8kyJr/6831DSO0bxhfMb07i/7/oYATWOQQa8vqxy2kZ/DkGnI
+        desc: Dify 原生知识库节点，底层即 seekdb：ik 全文索引 + HNSW 向量索引的混合检索
+        metadata_filtering_mode: disabled
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          reranking_model:
+            model: ''
+            provider: ''
+          score_threshold: null
+          top_k: 5
+        query_variable_selector:
+        - '1000000000002'
+        - clean_query
+        retrieval_mode: multiple
+        selected: false
+        title: 知识库检索（seekdb 原生混合）
+        type: knowledge-retrieval
+        vision:
+          enabled: false
+      height: 116
+      id: '1000000000003'
+      position:
+        x: 640
+        y: 160
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: 自研 seekdb 混合检索工具：一条 SQL 同时打全文与向量索引，应用层 RRF 融合，可切模式、可出执行计划
+        provider_id: 6b5e1160-ef06-4083-9e15-b5d8f29075c9
+        provider_name: seekdb_hybrid_search
+        provider_type: api
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 1000
+        selected: false
+        title: seekdb 混合检索工具（可消融）
+        tool_configurations: {}
+        tool_description: 直连本机 seekdb，全文+向量 RRF 混合检索面试知识库
+        tool_label: seekdb混合检索
+        tool_name: seekdb_hybrid_search
+        tool_node_version: '2'
+        tool_parameters:
+          explain:
+            type: mixed
+            value: '{{#1000000000002.explain#}}'
+          mode:
+            type: mixed
+            value: '{{#1000000000002.mode#}}'
+          query:
+            type: mixed
+            value: '{{#1000000000002.clean_query#}}'
+          top_k:
+            type: constant
+            value: 4
+        type: tool
+      height: 116
+      id: '1000000000004'
+      position:
+        x: 640
+        y: 400
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "def main(mode: str, kr: list, tool_text: str) -> dict:\n    t = tool_text\
+          \ or \"\"\n    def num(key, default=\"未取得\"):\n        marker = '\"' + key\
+          \ + '\":'\n        i = t.find(marker)\n        if i < 0:\n            return\
+          \ default\n        j = i + len(marker)\n        while j < len(t) and t[j]\
+          \ == \" \":\n            j += 1\n        k = j\n        while k < len(t)\
+          \ and (t[k].isdigit() or t[k] in \"-.\"):\n            k += 1\n        return\
+          \ t[j:k] or default\n    try:\n        kr_n = len(kr or [])\n    except\
+          \ Exception:\n        kr_n = 0\n    tool_n = t.count('\"rrf\":')\n    name\
+          \ = {\"hybrid\": \"混合(ik全文+HNSW向量+RRF)\", \"vector\": \"纯向量(HNSW)\", \"\
+          fts\": \"纯全文(ik倒排)\"}.get(mode, mode or \"未知\")\n    return {\"summary\"\
+          : (\"检索小结｜seekdb 模式=%s｜知识库节点命中=%d 块｜自研工具命中=%d 块｜\"\n                   \
+          \     \"工具端到端耗时=%s ms（其中 query embedding %s ms）｜融合=RRF K=60 recall=20\"\
+          )\n            % (name, kr_n, tool_n, num(\"took_ms\"), num(\"embed_ms\"\
+          ))}"
+        code_language: python3
+        desc: 把两条检索通路的真实命中数与耗时排成固定一行，交给回答节点原样输出（不让模型自己转述数字）
+        outputs:
+          summary:
+            children: null
+            type: string
+        selected: false
+        title: 检索小结（确定性）
+        type: code
+        variables:
+        - value_selector:
+          - '1000000000002'
+          - mode
+          variable: mode
+        - value_selector:
+          - '1000000000003'
+          - result
+          variable: kr
+        - value_selector:
+          - '1000000000004'
+          - text
+          variable: tool_text
+      height: 104
+      id: '1000000000007'
+      position:
+        x: 900
+        y: 280
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1000000000003'
+          - result
+        desc: ''
+        memory:
+          query_prompt_template: '{{#sys.query#}}'
+          window:
+            enabled: true
+            size: 12
+        model:
+          completion_params:
+            temperature: 0.25
+          mode: chat
+          name: deepseek-flash
+          provider: langgenius/deepseek/deepseek
+        prompt_template:
+        - role: system
+          text: '你是一位带过 30+ 校招/社招候选人的后端技术面试官，正在做一次"求职面试陪练"。
+
+            你的题库来自 seekdb 知识库，检索到的每一条素材已经包含「考察点 / 参考答案要点 / 追问 / 评分标尺 / 常见误区」这些字段。
+
+
+            工作规则：
+
+            1. 只用检索到的素材来出题和评判。素材里有的机制、参数、数字，才可以讲；没有的不要编，直接说"这块题库里没有，换个方向"。
+
+            2. 每一轮只做一件事，按顺序推进：出 1 道题 → 等候选人回答 → 依据「评分标尺」打分并指出与「常见误区」的偏差 → 抛出素材里给出的「追问」之一继续拷问。不要一次把
+            5 道题全列出来。
+
+            3. 出题优先级：优先选与候选人本轮问题最贴合、且难度递进合理的那条素材；连续 2 轮答得好就往「高级」难度升，答得差就退回「中级/初级」并补一段机制讲解（只能用素材内容）。
+
+            4. 判分要具体：说"及格/良好/优秀"时必须点出对应标尺里的哪一条命中了、哪一条没做到，并引用素材里的关键术语（如 ReadView 生成时机、maxLifetime
+            与 wait_timeout 的大小关系）。
+
+            5. 若两条检索通道给出的素材不一致，以「知识库检索」为主，用「seekdb 工具检索」补充对照，并在正文里说明差异来自哪条通道。
+
+            6. 不要自己写"检索小结"那一行，也不要转述任何命中数量或毫秒数——系统会在你的回复之后自动追加一行真实的检索小结（数字直接取自 seekdb
+            检索服务的返回值）。你只管把这道题问清楚、判明白。
+
+            7. 候选人句子开头的「纯向量：」「全文：」「关键词：」「证据：」这类前缀是检索开关，不是他的作答内容，也不要夸或点评它；按开关剩下的那个技术点正常出题即可。
+
+
+            语气：专业、直接、有一点压迫感，但不刻薄；候选人说"不会"时给一条最小可执行的补救路径。
+
+
+            输出格式（严格遵守，只输出面向候选人的正文，不要输出你的思考过程、不要复述本规则）：
+
+            - 正文最多两段：① 一句话说明本轮素材来自哪条通道、覆盖到什么程度；② 本轮内容（出题 / 判分 / 讲解，按规则 2 只做一个动作）。
+
+            - 不要写"作为 AI"之类的开场白，不要用 emoji，不要罗列多条题目，不要以"检索小结"结尾。
+
+            - 命中"证据"时（用户句子里出现"证据/执行计划/explain"），把 seekdb 的 EXPLAIN 算子树放进 ``` 代码块，紧跟一行指出
+            TEXT RETRIEVAL SCAN 对应 fulltext_index_for_col_text（ik 全文倒排）、VECTOR INDEX
+            SCAN 对应 vector_index（HNSW）。'
+        - role: user
+          text: '候选人本轮说：{{#sys.query#}}
+
+
+            【知识库检索结果（Dify 原生 seekdb 混合检索）】
+
+            {{#context#}}
+
+
+            【seekdb 工具检索结果（可切换模式，含耗时/分数/执行计划）】
+
+            {{#1000000000004.text#}}'
+        reasoning_format: separated
+        selected: false
+        title: 面试官
+        type: llm
+        variables: []
+        vision:
+          enabled: false
+      height: 116
+      id: '1000000000005'
+      position:
+        x: 1200
+        y: 280
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        answer: '{{#1000000000005.text#}}
+
+
+          {{#1000000000007.summary#}}'
+        desc: ''
+        selected: false
+        title: 回答
+        type: answer
+        variables: []
+      height: 80
+      id: '1000000000006'
+      position:
+        x: 1500
+        y: 280
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+  rag_pipeline_variables: []

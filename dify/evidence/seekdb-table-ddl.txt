@@ -1,0 +1,12 @@
+*************************** 1. row ***************************
+       Table: vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node
+Create Table: CREATE TABLE `vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node` (
+  `id` varchar(36) NOT NULL,
+  `vector` VECTOR(512) DEFAULT NULL,
+  `text` longtext DEFAULT NULL,
+  `metadata` json DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  VECTOR KEY `vector_index` (`vector`) WITH (LIB=VSAG,DISTANCE=L2,M=16,EF_CONSTRUCTION=256,TYPE=HNSW, EF_SEARCH=64) BLOCK_SIZE 16384,
+  FULLTEXT KEY `fulltext_index_for_col_text` (`text`) WITH PARSER ik PARSER_PROPERTIES=(ik_mode="smart") BLOCK_SIZE 16384,
+  KEY `idx_metadata_doc_id` ((cast(JSON_UNQUOTE(JSON_EXTRACT(`metadata`,'$.document_id')) as char(64) charset utf8mb4))) BLOCK_SIZE 16384 LOCAL
+) ORGANIZATION INDEX DEFAULT CHARSET = utf8mb4 ROW_FORMAT = DYNAMIC COMPRESSION = 'zstd_1.3.8' BLOCK_SIZE = 16384 TABLET_SIZE = 134217728 PCTFREE = 0

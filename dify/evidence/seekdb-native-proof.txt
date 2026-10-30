@@ -1,0 +1,19 @@
+# 以下均为真实 seekdb 容器内 mysql 客户端输出（镜像 oceanbase/seekdb:latest，端口 2881，库 test）
+
+$ SHOW TABLES; -- 只有一张表，表名即 Dify 知识库 dataset_id 对应的向量表
+Tables_in_test
+vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node
+segments
+162
+
+$ SHOW INDEX FROM vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node;
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression
+vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node	0	PRIMARY	1	id	A	NULL	NULL	NULL		BTREE	available		YES	NULL
+vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node	1	vector_index	1	vector	A	NULL	NULL	NULL	YES	VECTOR	available		YES	NULL
+vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node	1	fulltext_index_for_col_text	1	text	A	NULL	NULL	NULL	YES	FULLTEXT	available		YES	NULL
+vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node	1	idx_metadata_doc_id	1	SYS_NC30$	A	NULL	NULL	NULL	YES	BTREE	available		YES	cast(JSON_UNQUOTE(JSON_EXTRACT(`metadata`,'$.document_id')) as char(64) charset utf8mb4)
+
+$ SELECT LEFT(text,40) FROM vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node WHERE MATCH(text) AGAINST('ReadView') LIMIT 3;  -- 只走 ik 全文索引
+fts_score	head
+7.431	Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合?\n- 领域: 
+6.324	Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档?\n- 领域: 数据库\n- 难度

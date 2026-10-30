@@ -1,0 +1,482 @@
+{
+ "started_at": "2026-10-30T01:58:14.546Z",
+ "base": "http://localhost",
+ "turns": [
+  {
+   "turn": 1,
+   "query": "纯向量：TIME_WAIT 为什么要等 2MSL",
+   "nodes": [
+    {
+     "title": "开始",
+     "type": "start",
+     "status": "succeeded",
+     "elapsed_time": 0.00008,
+     "error": null,
+     "outputs": {},
+     "inputs": {}
+    },
+    {
+     "title": "模式路由",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.051474,
+     "error": null,
+     "outputs": {
+      "clean_query": "TIME_WAIT 为什么要等 2MSL",
+      "explain": "false",
+      "mode": "vector",
+      "mode_label": "纯向量检索（只走 HNSW）"
+     },
+     "inputs": {
+      "text": "纯向量：TIME_WAIT 为什么要等 2MSL"
+     }
+    },
+    {
+     "title": "seekdb 混合检索工具（可消融）",
+     "type": "tool",
+     "status": "succeeded",
+     "elapsed_time": 0.071902,
+     "error": null,
+     "outputs": {
+      "text": "{\"query\":\"TIME_WAIT 为什么要等 2MSL\",\"mode\":\"vector\",\"limit\":4,\"took_ms\":55,\"embed_ms\":5,\"results\":[{\"id\":\"9170bbb9-a11a-47ed-9adc-8e9109b021fa\",\"text\":\"Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？ - 领域: 网络 - 难度: 高级 - 考察点: 两个默认优化互相等待的症状 - 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复 - 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？ - 评分标尺: 及格=说 Nagle 攒包…(3117 字符)",
+      "files": [],
+      "json": [
+       {
+        "query": "TIME_WAIT 为什么要等 2MSL",
+        "mode": "vector",
+        "limit": 4,
+        "took_ms": 55,
+        "embed_ms": 5,
+        "results": [
+         {
+          "id": "9170bbb9-a11a-47ed-9adc-8e9109b021fa",
+          "text": "Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？ - 领域: 网络 - 难度: 高级 - 考察点: 两个默认优化互相等待的症状 - 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复 - 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？ - 评分标尺: 及格=说 Nagle 攒包与 40 毫秒来自 delayed ACK；良好=给 TCP_DELACK_MAX 与 TCP_NODELAY 默认状态；优秀=能讲 QUICKACK 非持久 - 常见误区: 把 40 毫秒归给 TIME_WAIT；以为 TCP_NODELAY 默认开启 ## HTTP 与安全",
+          "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+          "rrf": 0.01639,
+          "fts_score": 0,
+          "vec_distance": 0.873077,
+          "channels": "vec:1"
+         },
+         {
+          "id": "92f97f4b-c8eb-4bc2-9dab-964aa098a055",
+          "text": "Q: 四次挥手顺序是什么，TIME_WAIT 为什么等 2MSL？ - 领域: 网络 - 难度: 高级 - 考察点: 主动关闭方状态机与端口资源后果 - 参考答案要点: 四包是 FIN、ACK、FIN、ACK，被动方收 FIN 时可能还有数据待发故不能合并；主动方进 TIME_WAIT 等 2MSL，Linux 的 MSL 硬编码 30 秒所以是 60 秒；两个目的是应答可能丢失的末个 ACK，并让旧报文在网络中消亡；危害是占住四元组，客户端短连接高频时本地端口耗尽，`ip_local_port_range` 默认约 32768~60999；治本是长连接与连接池，`tcp_fin_timeout` 管的是 FIN_WAIT_2 不是 TIME_WAIT，`tcp_tw_recycle` 因 NAT 误丢包已在 4.12 移除 - 追问: 为什么进 TIME_WAIT 的是主动关闭方？；几十万 TIME_WAIT 你按什么顺序调优？ - 评分标尺: 及格=四步与两个目的；良好=给 MSL=30 秒与端口范围；优秀=纠正 fin_timeout 误解并提 `tcp_tw_reuse` 只对出站有效 - 常见误区: 把 2MSL 说成等对方收完数据；建议开 tcp_tw_recycle",
+          "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+          "rrf": 0.01613,
+          "fts_score": 0,
+          "vec_distance": 0.907526,
+          "channels": "vec:2"
+         },
+         {
+          "id": "09e9795a-ebbb-4f86-9008-a29208437e84",
+          "text": "Q: 信号是怎么送达的，为什么 SIGKILL 不能被捕获？ - 领域: 操作系统 - 难度: 中级 - 考察点: 信号投递的内核实现与陷阱 - 参考答案要点: 信号是异步通知，1~64 号，34~64 为实时信号可排队带 siginfo；发送只置 pending 位图并唤醒目标，真正处理发生在返回用户态前的 `get_signal`，所以在内核睡眠的进程不会立刻响应；SIGKILL(9)、SIGSTOP(19) 硬编码不可捕获，保证系统总能终止进程；坑是 SIGCHLD 不排队会丢事件、handler 里调 malloc 等非 async-signal-safe 函数可能死锁、写已关闭的管道得 SIGPIPE(13)，socket 要传 `MSG_NOSIGNAL` - 追问: 进程卡在 D 状态时为什么 kill -9 也不生效？；三个子进程同时退出，一个 SIGCHLD 够吗？ - 评分标尺: 及格=知信号异步且 9、19 不可捕获；良好=说清返回用户态才处理并解释 D 状态；优秀=能讲不排队与 SIGPIPE - 常见误区: 认为信号到就立刻打断执行；说 kill -9 永远有效 ## IO 与并发",
+          "document_id": "21c664ce-2e6b-42b8-a18d-15d1938510fd",
+          "rrf": 0.01587,
+          "fts_score": 0,
+          "vec_distance": 0.914053,
+          "channels": "vec:3"
+         },
+         {
+          "id": "0add551c-865c-43d8-9f11-451b3ed615bb",
+          "text": "Q: volatile 到底保证了什么，happens-before 怎么支撑双重检查锁？ - 领域: 语言 - 难度: 高级 - 考察点: JMM 抽象与内存屏障，而不是把 volatile 当原子开关 - 参考答案要点: happens-before 至少说得出程序顺序、监视器规则（unlock 先于同锁后续 lock）、volatile 写先于后续读、传递性、start/join；volatile = 可见性 + 禁止重排，写时插 StoreStore 与 StoreLoad 屏障（x86 表现为 lock 前缀指令），读时插 LoadLoad/LoadStore；不保证原子性，i++ 是读-改-写三步，要 AtomicInteger（CAS + volatile value）；DCL 不加 volatile 时 `new` 的分配内存→执行构造→引用赋值可能被重排，别的线程拿到未初始化完的半成品对象；final 冻结靠构造结束前的 StoreStore，但 this 逃逸会破坏 - 追问: 为什么 volatile 写在 ARM 上比 x86 贵？happens-before 和物理时间先后是什么关系？ - 评分标尺: 及格=可见性+禁重排且明确不原子；良好=说出 3 条 hb 并解释 DCL 重排后果；优秀=能讲屏障类型、平台差异与 final 边界 - 常见误区: 断言…(651 字符)",
+          "document_id": "b7b9960d-f1c5-49d9-a613-0051a6380443",
+          "rrf": 0.01563,
+          "fts_score": 0,
+          "vec_distance": 0.918125,
+          "channels": "vec:4"
+         }
+        ]
+       }
+      ]
+     },
+     "inputs": {
+      "explain": "false",
+      "mode": "vector",
+      "query": "TIME_WAIT 为什么要等 2MSL",
+      "top_k": "4"
+     }
+    },
+    {
+     "title": "知识库检索（seekdb 原生混合）",
+     "type": "knowledge-retrieval",
+     "status": "succeeded",
+     "elapsed_time": 0.136898,
+     "error": null,
+     "outputs": {
+      "result": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "e8febfaf-0919-4137-a90e-de3321f5f434",
+         "retriever_from": "workflow",
+         "score": 15.720197876026914,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 548,
+         "segment_position": 2,
+         "segment_index_node_hash": "b08fa2506a21597dc0bc7e198359875870ccebea736b750cb5671a2281d0b843",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: 四次挥手顺序是什么，TIME_WAIT 为什么等 2MSL？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 主动关闭方状态机与端口资源后果\n- 参考答案要点: 四包是 FIN、ACK、FIN、ACK，被动方收 FIN 时可能还有数据待发故不能合并；主动方进 TIME_WAIT 等 2MSL，Linux 的 MSL 硬编码 30 秒所以是 60 秒；两个目的是应答可能丢失的末个 ACK，并让旧报文在网络中消亡；危害是占住四元组，客户端短连接高频时本地端口耗尽，`ip_local_port_range` 默认约 32768~60999；治本是长连接与连接池，`tcp_fin_timeout` 管的是 FIN_WAIT_2 不是 TIME_WAIT，`tcp_tw_recycle` 因 NAT 误丢包已在 4.12 移除\n- 追问: 为什么进 TIME_WAIT 的是主动关闭方？；几十万 TIME_WAIT 你按什么顺序调优？\n- 评分标尺: 及格=四步与两个目的；良好=给 MSL=30 秒与端口范围；优秀=纠正 fin_timeout 误解并提 `tcp_tw_reuse` 只对出站有效\n- 常见误区: 把 2MSL 说成等对方收完数据；建议开 tcp_tw_recycle",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "b6a66dec-31e0-4859-9d8a-301792eda792",
+         "retriever_from": "workflow",
+         "score": 4.594215547839456,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 592,
+         "segment_position": 6,
+         "segment_index_node_hash": "211b59827216916051e29cbed98e52e8679d3d19aae39fff632d16d60e13ae9c",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 两个默认优化互相等待的症状\n- 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复\n- 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？\n- 评分标尺: 及格=说 Nagle 攒包与 40 毫秒来自 delayed ACK；良好=给 TCP_DELACK_MAX 与 TCP_NODELAY 默认状态；优秀=能讲 QUICKACK 非持久\n- 常见误区: 把 40 毫秒归给 TIME_WAIT；以为 TCP_NODELAY 默认开启\n\n## HTTP 与安全",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "b7b9960d-f1c5-49d9-a613-0051a6380443",
+         "document_name": "07-编程语言与工程实践",
+         "data_source_type": "upload_file",
+         "segment_id": "c66cd548-dfc4-4fc7-8139-c99e8525f5f2",
+         "retriever_from": "workflow",
+         "score": 4.081541552453561,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 671,
+         "segment_position": 4,
+         "segment_index_node_hash": "37efc83b8a0de42b31d718681bafb42668959f51b266a948c8ca55680d83cee5",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "07-编程语言与工程实践",
+        "files": null,
+        "content": "Q: synchronized 方法从字节码到内核锁经历了什么，JDK6 之后怎么优化？\n- 领域: 语言\n- 难度: 高级\n- 考察点: 锁升级机制与其代价，能否对应真实竞争场景\n- 参考答案要点: 字节码是 monitorenter/monitorexit，锁状态存对象头 Mark Word；无锁→偏向锁（CAS 写入线程 ID，JEP 374 使 JDK15 默认关闭、18 移除）→轻量级锁（栈帧建 Displaced Mark Word 后 CAS，失败即自旋）→重量级锁（膨胀成 ObjectMonitor，含 EntryList/WaitSet，抢不到就 park 进内核用 futex 挂起）；升级不可逆，重偏向要等 safepoint 批量撤销；wait 释放锁而 sleep 不释放；高竞争宜换 ReentrantLock（tryLock 超时、公平模式、多 Condition）或 StampedLock 乐观读；锁的是引用指向的对象，String 常量池与 Integer -128~127 缓存会意外共锁\n- 追问: 偏向锁为什么被默认关掉？线上大量 BLOCKED 线程怎么排查？自旋多久膨胀由谁决定？\n- 评分标尺: 及格=说清三层状态与 ObjectMonitor；良好=能讲 Mark Word 存锁位与膨胀的内核切换代价；优秀=能解释偏向锁失效原因并对比 Ree…(671 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "5f2210c2-bdd0-43e5-b01c-17d300a939ff",
+         "retriever_from": "workflow",
+         "score": 4.0260628938940215,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 580,
+         "segment_position": 17,
+         "segment_index_node_hash": "c19951f24572d2ae70905c3f27bc0a11964f4e37cc4c2755787114eba38eb803",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: QUIC 自己实现可靠传输，为什么还要建在 UDP 上？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 内核 TCP 的不可演进性与 QUIC 收益\n- 参考答案要点: 首要原因是可部署：TCP 在内核协议栈里，改进要等系统升级，中间盒还常按 TCP 语义干预并封杀新扩展，放进用户态的 UDP 能由库自己发版；机制收益是每条 stream 独立可靠交付、按包号而非字节流重传，丢包只阻塞所在流，解决 TCP 层队头阻塞；连接由 Connection ID 标识而非四元组，换 Wi-Fi 到蜂窝或 NAT 重启都能迁移；TLS1.3 内置、首次 1-RTT、PSK 可 0-RTT；代价是用户态收发靠 sendmmsg 与 GSO、CPU 与切换开销高，UDP 可能被限速丢弃故要留 alt-svc 回退 TCP，最小包 1200 字节且超 MTU 会整包丢\n- 追问: 为什么 TCP 上的队头阻塞在 HTTP/2 里绕不开？；QUIC 的连接迁移在 NAT 后怎么工作？；UDP 的 CPU 代价你打算怎么补？\n- 评分标尺: 及格=知避免队头阻塞与内核改不动；良好=讲包号、每流独立、Connection ID、0-RTT；优秀=能谈用户态开销与 UDP 被限速的回退\n- 常见误区: 说用 UDP 所以不可靠；认为 QUIC 不需要拥塞控制",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "e5961c0c-532a-428a-a6ae-e553c4530076",
+         "retriever_from": "workflow",
+         "score": 3.922692573145108,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 653,
+         "segment_position": 19,
+         "segment_index_node_hash": "a928c61fe2961ef98284465b93be97005014c8550a961a543b234e6035879620",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: 接收窗口降到 0 之后会发生什么，窗口字段不够用怎么办？\n- 领域: 网络\n- 难度: 高级\n- 考察点: rwnd 通告、零窗探测与窗口缩放\n- 参考答案要点: 接收方在每个 ACK 首部通告 rwnd，发送方可发字节取 rwnd 与 cwnd 较小值；rwnd 为 0 时停发普通数据并启动零窗探测定时器（Linux 复用 RTO 指数退避），定期发 1 字节探测包，ACK 带回非零窗口即恢复，此机制为避免窗口更新丢失造成双方永久互等；双方都要防 silly window syndrome，接收侧要等可用缓冲恢复到至少 min(MSS, 缓冲一半) 才通告；窗口字段只有 16 位即上限 65535 字节，按 BDP 算远不够，靠窗口缩放（RFC 7323，移位 0~14、最大约 1GB），只能在 SYN 协商；`net.ipv4.tcp_rmem` 默认 4096、131072、6291456，手工设 SO_RCVBUF 会关掉自动调优；抓包大量 Zero Window 多是应用读得慢、线程池满或 GC 停顿\n- 追问: 窗口更新包丢了靠什么恢复，为什么探测只发 1 字节？；手工调大 SO_RCVBUF 为什么可能更差？\n- 评分标尺: 及格=说 rwnd 通告与零窗探测；良好=给 1 字节探测、min(MSS, 半缓冲) 与缩放移位；优秀=能用 tcp_rmem 默认值与…(653 字符)",
+        "summary": null
+       }
+      ]
+     },
+     "inputs": {
+      "query": "TIME_WAIT 为什么要等 2MSL"
+     }
+    },
+    {
+     "title": "检索小结（确定性）",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.068619,
+     "error": null,
+     "outputs": {
+      "summary": "检索小结｜seekdb 模式=纯向量(HNSW)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=55 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20"
+     },
+     "inputs": {
+      "mode": "vector",
+      "kr": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "e8febfaf-0919-4137-a90e-de3321f5f434",
+         "retriever_from": "workflow",
+         "score": 15.720197876026914,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 548,
+         "segment_position": 2,
+         "segment_index_node_hash": "b08fa2506a21597dc0bc7e198359875870ccebea736b750cb5671a2281d0b843",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: 四次挥手顺序是什么，TIME_WAIT 为什么等 2MSL？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 主动关闭方状态机与端口资源后果\n- 参考答案要点: 四包是 FIN、ACK、FIN、ACK，被动方收 FIN 时可能还有数据待发故不能合并；主动方进 TIME_WAIT 等 2MSL，Linux 的 MSL 硬编码 30 秒所以是 60 秒；两个目的是应答可能丢失的末个 ACK，并让旧报文在网络中消亡；危害是占住四元组，客户端短连接高频时本地端口耗尽，`ip_local_port_range` 默认约 32768~60999；治本是长连接与连接池，`tcp_fin_timeout` 管的是 FIN_WAIT_2 不是 TIME_WAIT，`tcp_tw_recycle` 因 NAT 误丢包已在 4.12 移除\n- 追问: 为什么进 TIME_WAIT 的是主动关闭方？；几十万 TIME_WAIT 你按什么顺序调优？\n- 评分标尺: 及格=四步与两个目的；良好=给 MSL=30 秒与端口范围；优秀=纠正 fin_timeout 误解并提 `tcp_tw_reuse` 只对出站有效\n- 常见误区: 把 2MSL 说成等对方收完数据；建议开 tcp_tw_recycle",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "b6a66dec-31e0-4859-9d8a-301792eda792",
+         "retriever_from": "workflow",
+         "score": 4.594215547839456,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 592,
+         "segment_position": 6,
+         "segment_index_node_hash": "211b59827216916051e29cbed98e52e8679d3d19aae39fff632d16d60e13ae9c",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 两个默认优化互相等待的症状\n- 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复\n- 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？\n- 评分标尺: 及格=说 Nagle 攒包与 40 毫秒来自 delayed ACK；良好=给 TCP_DELACK_MAX 与 TCP_NODELAY 默认状态；优秀=能讲 QUICKACK 非持久\n- 常见误区: 把 40 毫秒归给 TIME_WAIT；以为 TCP_NODELAY 默认开启\n\n## HTTP 与安全",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "b7b9960d-f1c5-49d9-a613-0051a6380443",
+         "document_name": "07-编程语言与工程实践",
+         "data_source_type": "upload_file",
+         "segment_id": "c66cd548-dfc4-4fc7-8139-c99e8525f5f2",
+         "retriever_from": "workflow",
+         "score": 4.081541552453561,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 671,
+         "segment_position": 4,
+         "segment_index_node_hash": "37efc83b8a0de42b31d718681bafb42668959f51b266a948c8ca55680d83cee5",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "07-编程语言与工程实践",
+        "files": null,
+        "content": "Q: synchronized 方法从字节码到内核锁经历了什么，JDK6 之后怎么优化？\n- 领域: 语言\n- 难度: 高级\n- 考察点: 锁升级机制与其代价，能否对应真实竞争场景\n- 参考答案要点: 字节码是 monitorenter/monitorexit，锁状态存对象头 Mark Word；无锁→偏向锁（CAS 写入线程 ID，JEP 374 使 JDK15 默认关闭、18 移除）→轻量级锁（栈帧建 Displaced Mark Word 后 CAS，失败即自旋）→重量级锁（膨胀成 ObjectMonitor，含 EntryList/WaitSet，抢不到就 park 进内核用 futex 挂起）；升级不可逆，重偏向要等 safepoint 批量撤销；wait 释放锁而 sleep 不释放；高竞争宜换 ReentrantLock（tryLock 超时、公平模式、多 Condition）或 StampedLock 乐观读；锁的是引用指向的对象，String 常量池与 Integer -128~127 缓存会意外共锁\n- 追问: 偏向锁为什么被默认关掉？线上大量 BLOCKED 线程怎么排查？自旋多久膨胀由谁决定？\n- 评分标尺: 及格=说清三层状态与 ObjectMonitor；良好=能讲 Mark Word 存锁位与膨胀的内核切换代价；优秀=能解释偏向锁失效原因并对比 Ree…(671 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "5f2210c2-bdd0-43e5-b01c-17d300a939ff",
+         "retriever_from": "workflow",
+         "score": 4.0260628938940215,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 580,
+         "segment_position": 17,
+         "segment_index_node_hash": "c19951f24572d2ae70905c3f27bc0a11964f4e37cc4c2755787114eba38eb803",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: QUIC 自己实现可靠传输，为什么还要建在 UDP 上？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 内核 TCP 的不可演进性与 QUIC 收益\n- 参考答案要点: 首要原因是可部署：TCP 在内核协议栈里，改进要等系统升级，中间盒还常按 TCP 语义干预并封杀新扩展，放进用户态的 UDP 能由库自己发版；机制收益是每条 stream 独立可靠交付、按包号而非字节流重传，丢包只阻塞所在流，解决 TCP 层队头阻塞；连接由 Connection ID 标识而非四元组，换 Wi-Fi 到蜂窝或 NAT 重启都能迁移；TLS1.3 内置、首次 1-RTT、PSK 可 0-RTT；代价是用户态收发靠 sendmmsg 与 GSO、CPU 与切换开销高，UDP 可能被限速丢弃故要留 alt-svc 回退 TCP，最小包 1200 字节且超 MTU 会整包丢\n- 追问: 为什么 TCP 上的队头阻塞在 HTTP/2 里绕不开？；QUIC 的连接迁移在 NAT 后怎么工作？；UDP 的 CPU 代价你打算怎么补？\n- 评分标尺: 及格=知避免队头阻塞与内核改不动；良好=讲包号、每流独立、Connection ID、0-RTT；优秀=能谈用户态开销与 UDP 被限速的回退\n- 常见误区: 说用 UDP 所以不可靠；认为 QUIC 不需要拥塞控制",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "e5961c0c-532a-428a-a6ae-e553c4530076",
+         "retriever_from": "workflow",
+         "score": 3.922692573145108,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 653,
+         "segment_position": 19,
+         "segment_index_node_hash": "a928c61fe2961ef98284465b93be97005014c8550a961a543b234e6035879620",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: 接收窗口降到 0 之后会发生什么，窗口字段不够用怎么办？\n- 领域: 网络\n- 难度: 高级\n- 考察点: rwnd 通告、零窗探测与窗口缩放\n- 参考答案要点: 接收方在每个 ACK 首部通告 rwnd，发送方可发字节取 rwnd 与 cwnd 较小值；rwnd 为 0 时停发普通数据并启动零窗探测定时器（Linux 复用 RTO 指数退避），定期发 1 字节探测包，ACK 带回非零窗口即恢复，此机制为避免窗口更新丢失造成双方永久互等；双方都要防 silly window syndrome，接收侧要等可用缓冲恢复到至少 min(MSS, 缓冲一半) 才通告；窗口字段只有 16 位即上限 65535 字节，按 BDP 算远不够，靠窗口缩放（RFC 7323，移位 0~14、最大约 1GB），只能在 SYN 协商；`net.ipv4.tcp_rmem` 默认 4096、131072、6291456，手工设 SO_RCVBUF 会关掉自动调优；抓包大量 Zero Window 多是应用读得慢、线程池满或 GC 停顿\n- 追问: 窗口更新包丢了靠什么恢复，为什么探测只发 1 字节？；手工调大 SO_RCVBUF 为什么可能更差？\n- 评分标尺: 及格=说 rwnd 通告与零窗探测；良好=给 1 字节探测、min(MSS, 半缓冲) 与缩放移位；优秀=能用 tcp_rmem 默认值与…(653 字符)",
+        "summary": null
+       }
+      ],
+      "tool_text": "{\"query\":\"TIME_WAIT 为什么要等 2MSL\",\"mode\":\"vector\",\"limit\":4,\"took_ms\":55,\"embed_ms\":5,\"results\":[{\"id\":\"9170bbb9-a11a-47ed-9adc-8e9109b021fa\",\"text\":\"Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？ - 领域: 网络 - 难度: 高级 - 考察点: 两个默认优化互相等待的症状 - 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复 - 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？ - 评分标尺: 及格=说 Nagle 攒包…(3117 字符)"
+     }
+    },
+    {
+     "title": "面试官",
+     "type": "llm",
+     "status": "succeeded",
+     "elapsed_time": 4.900259,
+     "error": null,
+     "model": {
+      "provider": "langgenius/deepseek/deepseek",
+      "name": "deepseek-flash",
+      "usage": {
+       "prompt_tokens": 4240,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 622,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 4862,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 4.894,
+       "time_to_first_token": 0.854,
+       "time_to_generate": 4.04
+      }
+     },
+     "outputs": {
+      "text": "本轮素材取自知识库检索的「四次挥手 / TIME_WAIT 等 2MSL」条目，seekdb 工具检索的向量通道也命中了同一条，两条通道内容一致：该素材领域为网络，难度为高级，覆盖关闭流程、MSL 取值、TIME_WAIT 的状态后果三个层面。\n\n题目：请你完整讲一遍主动关闭方从开始关闭到进入 TIME_WAIT 的整个过程，要求给出具体的报文顺序，以及每一端所处的状态。然后回答三个问题：第一，为什么进入 TIME_WAIT 的是主动关闭方，而不是被动关闭方；第二，2MSL 在 Linux 上具体是多少秒，这个值由什么决定；第三，这两个 MSL 分别在应对哪种风险。请尽量使用具体参数和状态名，不要停留在“等一会儿确保对方收到”这种模糊表述上。",
+      "reasoning_content": "<!--dify-deepseek-reasoning-->候选人说\"纯向量：TIME_WAIT 为什么要等 2MSL\" — 这是检索开关，技术点是 TIME_WAIT 为什么等 2MSL。按规则，我出题。素材来自知识库检索（Dify混合检索）主文档\"四次挥手\"，seekdb工具检索也命中同一条（vec:2）。所以两条通道一致。\n\n我要出题：不要直接给答案。出1道题。难度：高级素材，但候选人只是抛出一个点，我先出一道题考察。\n\n规则6：不说命中数量、毫秒数。规则5：若两条通道不一致要说明差异。这里一致，可以简单说明。\n\n正文两段：①一句话说明本轮素材来自哪条通道、覆盖程度；②本轮内容（出题）。\n\n出什么题？围绕 TIME_WAIT：可以让候选人讲四次挥手顺序 + 为什么 TIME_WAIT 等 2MSL + 两个目的。但规则说一次只做一件事：出1道题。可以出一道复合但聚焦的题：完整讲主动关闭方进入 TIME_WAIT 的全过程，并说明 2MSL 的取值来源和解决的两种风险。这就是素材的\"及格\"+\"良好\"层次。\n\n不要给答案。题目要问清楚。\n\n我出题时可提示评分标尺？不，先出题等回答。但可以适当给一点点压迫感。\n\n那正文：\n\n① 本轮素材来自知识库检索的「四次挥手 / TIME_WAIT 等 2MSL」条目，seekdb 工具检索向量通道也命中了同一条，两条通道内容一致，属于网络·高…(759 字符)",
+      "usage": {
+       "prompt_tokens": 4240,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 622,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 4862,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 4.894,
+       "time_to_first_token": 0.854,
+       "time_to_generate": 4.04
+      },
+      "finish_reason": "stop"
+     },
+     "inputs": {
+      "#sys.query#": "纯向量：TIME_WAIT 为什么要等 2MSL",
+      "#1000000000004.text#": "{\"query\":\"TIME_WAIT 为什么要等 2MSL\",\"mode\":\"vector\",\"limit\":4,\"took_ms\":55,\"embed_ms\":5,\"results\":[{\"id\":\"9170bbb9-a11a-47ed-9adc-8e9109b021fa\",\"text\":\"Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？ - 领域: 网络 - 难度: 高级 - 考察点: 两个默认优化互相等待的症状 - 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复 - 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？ - 评分标尺: 及格=说 Nagle 攒包…(3117 字符)",
+      "#context#": "Q: 四次挥手顺序是什么，TIME_WAIT 为什么等 2MSL？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 主动关闭方状态机与端口资源后果\n- 参考答案要点: 四包是 FIN、ACK、FIN、ACK，被动方收 FIN 时可能还有数据待发故不能合并；主动方进 TIME_WAIT 等 2MSL，Linux 的 MSL 硬编码 30 秒所以是 60 秒；两个目的是应答可能丢失的末个 ACK，并让旧报文在网络中消亡；危害是占住四元组，客户端短连接高频时本地端口耗尽，`ip_local_port_range` 默认约 32768~60999；治本是长连接与连接池，`tcp_fin_timeout` 管的是 FIN_WAIT_2 不是 TIME_WAIT，`tcp_tw_recycle` 因 NAT 误丢包已在 4.12 移除\n- 追问: 为什么进 TIME_WAIT 的是主动关闭方？；几十万 TIME_WAIT 你按什么顺序调优？\n- 评分标尺: 及格=四步与两个目的；良好=给 MSL=30 秒与端口范围；优秀=纠正 fin_timeout 误解并提 `tcp_tw_reuse` 只对出站有效\n- 常见误区: 把 2MSL 说成等对方收完数据；建议开 tcp_tw_recycle\nQ: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？\n- 领域: 网络\n- 难度: 高级…(3048 字符)",
+      "model_provider": "langgenius/deepseek/deepseek",
+      "model_name": "deepseek-flash"
+     }
+    },
+    {
+     "title": "回答",
+     "type": "answer",
+     "status": "succeeded",
+     "elapsed_time": 0.000082,
+     "error": null,
+     "outputs": {
+      "answer": "本轮素材取自知识库检索的「四次挥手 / TIME_WAIT 等 2MSL」条目，seekdb 工具检索的向量通道也命中了同一条，两条通道内容一致：该素材领域为网络，难度为高级，覆盖关闭流程、MSL 取值、TIME_WAIT 的状态后果三个层面。\n\n题目：请你完整讲一遍主动关闭方从开始关闭到进入 TIME_WAIT 的整个过程，要求给出具体的报文顺序，以及每一端所处的状态。然后回答三个问题：第一，为什么进入 TIME_WAIT 的是主动关闭方，而不是被动关闭方；第二，2MSL 在 Linux 上具体是多少秒，这个值由什么决定；第三，这两个 MSL 分别在应对哪种风险。请尽量使用具体参数和状态名，不要停留在“等一会儿确保对方收到”这种模糊表述上。\n\n检索小结｜seekdb 模式=纯向量(HNSW)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=55 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+      "files": []
+     },
+     "inputs": {}
+    }
+   ],
+   "answer": "本轮素材取自知识库检索的「四次挥手 / TIME_WAIT 等 2MSL」条目，seekdb 工具检索的向量通道也命中了同一条，两条通道内容一致：该素材领域为网络，难度为高级，覆盖关闭流程、MSL 取值、TIME_WAIT 的状态后果三个层面。\n\n题目：请你完整讲一遍主动关闭方从开始关闭到进入 TIME_WAIT 的整个过程，要求给出具体的报文顺序，以及每一端所处的状态。然后回答三个问题：第一，为什么进入 TIME_WAIT 的是主动关闭方，而不是被动关闭方；第二，2MSL 在 Linux 上具体是多少秒，这个值由什么决定；第三，这两个 MSL 分别在应对哪种风险。请尽量使用具体参数和状态名，不要停留在“等一会儿确保对方收到”这种模糊表述上。\n\n检索小结｜seekdb 模式=纯向量(HNSW)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=55 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+   "events": [
+    {
+     "event": "workflow_finished",
+     "status": "succeeded",
+     "error": null,
+     "elapsed_time": 5.232959450000635
+    }
+   ],
+   "workflow_run_id": "fe75c18b-1e23-49ee-9b9e-140a190f5d6c",
+   "message_end": {
+    "answer": "",
+    "metadata": {}
+   },
+   "summary": {
+    "知识库检索": {
+     "hits": 5,
+     "top_score": "15.720",
+     "titles": [
+      "04-计算机网络",
+      "04-计算机网络",
+      "07-编程语言与工程实践",
+      "04-计算机网络",
+      "04-计算机网络"
+     ],
+     "elapsed_time": 0.136898
+    },
+    "seekdb工具": {
+     "hits": 4,
+     "mode": "vector",
+     "took_ms": 55,
+     "embed_ms": 5,
+     "has_explain": false,
+     "top_channels": [
+      "vec:1 rrf=0.01639",
+      "vec:2 rrf=0.01613",
+      "vec:3 rrf=0.01587",
+      "vec:4 rrf=0.01563"
+     ],
+     "elapsed_time": 0.071902
+    },
+    "生效模式": "纯向量检索（只走 HNSW）",
+    "answer_length": 435
+   }
+  }
+ ]
+}

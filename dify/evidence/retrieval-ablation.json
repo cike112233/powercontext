@@ -1,0 +1,498 @@
+{
+ "generated_at": "2026-10-30T02:07:29.946Z",
+ "top_k": 5,
+ "rounds": 3,
+ "rounds_warmup": 1,
+ "quality_stable_across_rounds": true,
+ "avg_ms_per_round": {
+  "hybrid": [
+   9,
+   16,
+   8
+  ],
+  "vector": [
+   9,
+   15,
+   8
+  ],
+  "fts": [
+   9,
+   17,
+   8
+  ]
+ },
+ "stat": [
+  {
+   "mode": "hybrid",
+   "at1": 12,
+   "within": 14,
+   "mrr": "0.929",
+   "avg_ms": 9,
+   "per_round": [
+    9,
+    16,
+    8
+   ]
+  },
+  {
+   "mode": "vector",
+   "at1": 11,
+   "within": 13,
+   "mrr": "0.857",
+   "avg_ms": 9,
+   "per_round": [
+    9,
+    15,
+    8
+   ]
+  },
+  {
+   "mode": "fts",
+   "at1": 12,
+   "within": 14,
+   "mrr": "0.895",
+   "avg_ms": 9,
+   "per_round": [
+    9,
+    17,
+    8
+   ]
+  }
+ ],
+ "rows": [
+  {
+   "kind": "术语",
+   "query": "undo 版本链和 ReadView 怎么配合实现 MVCC",
+   "expect": "讲讲 MVCC 的实现",
+   "modes": {
+    "hybrid": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "术语",
+   "query": "哪些 SQL 写法会导致索引失效",
+   "expect": "哪些写法会导致索引失效",
+   "modes": {
+    "hybrid": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "哪些写法会导致索引失效,你在项目里踩过哪些坑? - 领域: 数据库 ",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "哪些写法会导致索引失效,你在项目里踩过哪些坑? - 领域: 数据库 ",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 11,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "哪些写法会导致索引失效,你在项目里踩过哪些坑? - 领域: 数据库 ",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "参数",
+   "query": "连接池 maxLifetime 和 wait_timeout 是什么关系",
+   "expect": "连接池有哪些关键参数",
+   "modes": {
+    "hybrid": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 12,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "术语",
+   "query": "redo log、undo log、binlog 为什么要两阶段提交",
+   "expect": "两阶段提交",
+   "modes": {
+    "hybrid": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "redo log、undo log、binlog 有什么区别,为什么",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "redo log、undo log、binlog 有什么区别,为什么",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 10,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "redo log、undo log、binlog 有什么区别,为什么",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "术语",
+   "query": "Buffer Pool、Change Buffer、Doublewrite 各解决什么问题",
+   "expect": "Buffer Pool、Change Buffer",
+   "modes": {
+    "hybrid": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "InnoDB 的 Buffer Pool、Change Buffer",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 11,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "InnoDB 的 Buffer Pool、Change Buffer",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "InnoDB 的 Buffer Pool、Change Buffer",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "口语",
+   "query": "给大表加索引怎么不锁生产",
+   "expect": "生产环境给一张两亿行的大表加索引",
+   "modes": {
+    "hybrid": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "生产环境给一张两亿行的大表加索引,你会怎么做? - 领域: 数据库 ",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 11,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "生产环境给一张两亿行的大表加索引,你会怎么做? - 领域: 数据库 ",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 13,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "生产环境给一张两亿行的大表加索引,你会怎么做? - 领域: 数据库 ",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "口语",
+   "query": "分页越翻越慢是怎么回事，怎么改",
+   "expect": "limit 1000000",
+   "modes": {
+    "hybrid": {
+     "took_ms": 10,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "表 orders(id, user_id, status, crea",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "表 orders(id, user_id, status, crea",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "表 orders(id, user_id, status, crea",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "口语",
+   "query": "进程之间有哪几种传数据的方式",
+   "expect": "进程间通信有哪些方式",
+   "modes": {
+    "hybrid": {
+     "took_ms": 10,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "进程间通信有哪些方式，各适合什么场景？ - 领域: 操作系统 - 难",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 10,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "进程间通信有哪些方式，各适合什么场景？ - 领域: 操作系统 - 难",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 10,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "进程间通信有哪些方式，各适合什么场景？ - 领域: 操作系统 - 难",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "口语",
+   "query": "消息队列怎么保证同一条消息不被处理两遍",
+   "expect": "不丢、不重、有序",
+   "modes": {
+    "hybrid": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": false,
+     "rank": 2,
+     "top1_title": "消息反复消费失败怎么办？死信队列是怎么设计的？ - 领域: 分布式 ",
+     "channels": "fts:4,vec:1 / fts:3,vec:6"
+    },
+    "vector": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": false,
+     "rank": null,
+     "top1_title": "消息反复消费失败怎么办？死信队列是怎么设计的？ - 领域: 分布式 ",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": false,
+     "rank": 3,
+     "top1_title": "假设我完全不懂技术，你把这个项目讲给我听。 - 领域: 项目 - 难",
+     "channels": "fts:1 / fts:2 / fts:3"
+    }
+   }
+  },
+  {
+   "kind": "口语",
+   "query": "缓存挂了会不会把数据库打崩",
+   "expect": "缓存穿透、击穿、雪崩",
+   "modes": {
+    "hybrid": {
+     "took_ms": 7,
+     "hits": 5,
+     "top1": false,
+     "rank": 2,
+     "top1_title": "连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库",
+     "channels": "fts:1,vec:6 / fts:5,vec:2"
+    },
+    "vector": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": false,
+     "rank": 2,
+     "top1_title": "缓存和数据库双写怎么保证一致？延迟双删和订阅 binlog 各解决什",
+     "channels": "vec:1 / vec:2"
+    },
+    "fts": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": false,
+     "rank": 5,
+     "top1_title": "连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库",
+     "channels": "fts:1 / fts:2 / fts:3 / fts:4 / fts:5"
+    }
+   }
+  },
+  {
+   "kind": "参数",
+   "query": "TIME_WAIT 为什么要等 2MSL",
+   "expect": "四次挥手顺序是什么",
+   "modes": {
+    "hybrid": {
+     "took_ms": 7,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "四次挥手顺序是什么，TIME_WAIT 为什么等 2MSL？ - 领",
+     "channels": "fts:1,vec:2"
+    },
+    "vector": {
+     "took_ms": 7,
+     "hits": 5,
+     "top1": false,
+     "rank": 2,
+     "top1_title": "Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？ - 领",
+     "channels": "vec:1 / vec:2"
+    },
+    "fts": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "四次挥手顺序是什么，TIME_WAIT 为什么等 2MSL？ - 领",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "术语",
+   "query": "TCP 为什么是三次握手，两次不行吗",
+   "expect": "三次握手为什么是三次",
+   "modes": {
+    "hybrid": {
+     "took_ms": 9,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "三次握手为什么是三次，两次不行、四次没必要？ - 领域: 网络 - ",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 7,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "三次握手为什么是三次，两次不行、四次没必要？ - 领域: 网络 - ",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 7,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "三次握手为什么是三次，两次不行、四次没必要？ - 领域: 网络 - ",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "术语",
+   "query": "epoll 比 select 好在哪，LT 和 ET 怎么选",
+   "expect": "select、poll、epoll 的区别",
+   "modes": {
+    "hybrid": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "select、poll、epoll 的区别，LT 和 ET 怎么选？",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 11,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "select、poll、epoll 的区别，LT 和 ET 怎么选？",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "select、poll、epoll 的区别，LT 和 ET 怎么选？",
+     "channels": "fts:1"
+    }
+   }
+  },
+  {
+   "kind": "口语",
+   "query": "Raft 怎么选主，为什么强调多数派",
+   "expect": "讲讲 Raft 的选举和日志复制",
+   "modes": {
+    "hybrid": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "讲讲 Raft 的选举和日志复制，为什么都强调多数派？ - 领域: ",
+     "channels": "fts:1,vec:1"
+    },
+    "vector": {
+     "took_ms": 8,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "讲讲 Raft 的选举和日志复制，为什么都强调多数派？ - 领域: ",
+     "channels": "vec:1"
+    },
+    "fts": {
+     "took_ms": 7,
+     "hits": 5,
+     "top1": true,
+     "rank": 1,
+     "top1_title": "讲讲 Raft 的选举和日志复制，为什么都强调多数派？ - 领域: ",
+     "channels": "fts:1"
+    }
+   }
+  }
+ ]
+}

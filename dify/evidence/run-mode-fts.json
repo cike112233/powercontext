@@ -1,0 +1,482 @@
+{
+ "started_at": "2026-10-30T01:58:19.996Z",
+ "base": "http://localhost",
+ "turns": [
+  {
+   "turn": 1,
+   "query": "全文：连接池 maxLifetime 和哪个服务端参数有关系",
+   "nodes": [
+    {
+     "title": "开始",
+     "type": "start",
+     "status": "succeeded",
+     "elapsed_time": 0.000074,
+     "error": null,
+     "outputs": {},
+     "inputs": {}
+    },
+    {
+     "title": "模式路由",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.057808,
+     "error": null,
+     "outputs": {
+      "clean_query": "连接池 maxLifetime 和哪个服务端参数有关系",
+      "explain": "false",
+      "mode": "fts",
+      "mode_label": "纯全文检索（只走 ik 倒排）"
+     },
+     "inputs": {
+      "text": "全文：连接池 maxLifetime 和哪个服务端参数有关系"
+     }
+    },
+    {
+     "title": "seekdb 混合检索工具（可消融）",
+     "type": "tool",
+     "status": "succeeded",
+     "elapsed_time": 0.052078,
+     "error": null,
+     "outputs": {
+      "text": "{\"query\":\"连接池 maxLifetime 和哪个服务端参数有关系\",\"mode\":\"fts\",\"limit\":4,\"took_ms\":28,\"embed_ms\":5,\"results\":[{\"id\":\"baf5f555-1e85-48db-98aa-2e70773a3498\",\"text\":\"Q: 连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库 - 难度: 中级 - 考察点: 应用侧配置能力,常与线上故障关联 - 参考答案要点: 服务端 max_connections 默认 151(8.0 起预留 1 个给 admin 的额外连接),超过报 ERROR 1040;每连接按 thread_stack、连接 buffer、临时表分配内存,大池不等于高性能;池侧核心参数 HikariCP 的 maximumPoolSize、minimumIdle、connectionTimeout(默认 30 秒)、maxLifetime(默认 30 分钟,必须小于服务端 wait_timeout 默认 28800 秒)、idleTimeout,配 keepaliveTime 防中间设备断链;池耗尽表现为获取连接超时(HikariCP 抛 SQLTransientConnectionException: Connection is not available, reque…(3214 字符)",
+      "files": [],
+      "json": [
+       {
+        "query": "连接池 maxLifetime 和哪个服务端参数有关系",
+        "mode": "fts",
+        "limit": 4,
+        "took_ms": 28,
+        "embed_ms": 5,
+        "results": [
+         {
+          "id": "baf5f555-1e85-48db-98aa-2e70773a3498",
+          "text": "Q: 连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库 - 难度: 中级 - 考察点: 应用侧配置能力,常与线上故障关联 - 参考答案要点: 服务端 max_connections 默认 151(8.0 起预留 1 个给 admin 的额外连接),超过报 ERROR 1040;每连接按 thread_stack、连接 buffer、临时表分配内存,大池不等于高性能;池侧核心参数 HikariCP 的 maximumPoolSize、minimumIdle、connectionTimeout(默认 30 秒)、maxLifetime(默认 30 分钟,必须小于服务端 wait_timeout 默认 28800 秒)、idleTimeout,配 keepaliveTime 防中间设备断链;池耗尽表现为获取连接超时(HikariCP 抛 SQLTransientConnectionException: Connection is not available, request timed out after 30000ms),吞吐断崖,线程栈大量等待 getConnection;根因多为慢 SQL 或未关闭连接/事务未提交,应查 SHOW PROCESSLIST 里 Sleep 且 Time 很大的连接;池大小经验值 poolSize≈核数×2+磁盘数,而不是几百 - …(859 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.01639,
+          "fts_score": 21.557189,
+          "vec_distance": 0,
+          "channels": "fts:1"
+         },
+         {
+          "id": "d7e5a12e-a096-4072-a937-a4082c8888a4",
+          "text": "Q: 为什么选择我们公司、这个岗位？ - 领域: 行为面 - 难度: 初级 - 考察点: 动机是否来自真实调研，并能把岗位和自己的经历对上 - 参考答案要点: 给一个可核验的具体点，如\"你们开源的连接池组件我读过，正好是我项目里踩过的坑\"；职责对上经历，如\"JD 写服务端性能优化，我实习做过两次慢查询治理\"；有对比，如\"也投了大厂基础架构，我更想去能独立闭环的小团队\"；说清能交付什么，如\"我想做检索方向，你们这块有真实流量\"；坦陈限制，如\"分布式事务经验弱，这是要补的\" - 追问: 你用过我们哪个产品，觉得哪里做得不好？；如果给你的是纯维护老系统的岗位，你还来吗？；两家同时给 offer，你用什么标准选？ - 评分标尺: 及格=至少一个具体到产品或技术的事实；良好=把 JD 条目和自己的经历一一对上；优秀=能指出对方产品一处不足，并说明取舍标准 - 常见误区: \"平台大、氛围好、有培养体系\"这类无信息量的话；只讲自己想学什么，不讲交付；把 JD 原句复述一遍当调研",
+          "document_id": "488c1e99-54f2-4001-92d0-2f364410ff40",
+          "rrf": 0.01613,
+          "fts_score": 9.658819,
+          "vec_distance": 0,
+          "channels": "fts:2"
+         },
+         {
+          "id": "0b0b48bc-df18-42ac-8c7b-4d8e36be8c18",
+          "text": "Q: 从输入 URL 到页面出现经历哪些阶段，哪些最容易慢？ - 领域: 网络 - 难度: 中级 - 考察点: 完整链路视图与瓶颈定位 - 参考答案要点: 阶段是 DNS、TCP 握手（1 RTT）、TLS（1.2 是 2 RTT、1.3 是 1 RTT）、请求、服务端排队与处理、响应传输（受初始窗口约 10 个 MSS 约束）、浏览器解析建 DOM 与 CSSOM 后首次渲染；CSS 是渲染阻塞资源、同步 script 阻塞解析，defer 保持顺序、async 不等；最慢处常在跨地域 RTT 与握手（首字节前无法并行）、服务端连接池或线程池排队与 GC 停顿、首屏体积（100KB 在 IW10 下要多轮往返）、多余的重定向（一个 301 就是一整轮）；优化顺序是 CDN 就近、H2 或 H3、长连接与连接池、压缩与关键 CSS 内联、preconnect - 追问: TTFB 包含哪几段，怎么拆开测？；初始拥塞窗口为什么会限制首屏大小？ - 评分标尺: 及格=按顺序说 DNS、TCP、TLS、请求、渲染；良好=指出 CSS 与 JS 阻塞；优秀=能把 IW10、重定向、TTFB 分解对上优化 - 常见误区: 说拿到 HTML 才开始建连接；把所有慢都归给带宽",
+          "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+          "rrf": 0.01587,
+          "fts_score": 8.38507,
+          "vec_distance": 0,
+          "channels": "fts:3"
+         },
+         {
+          "id": "7674556a-b302-4c6d-93b2-8c26d393a345",
+          "text": "Q: 熔断、降级、隔离是三个概念吗？熔断阈值和状态机怎么设计？ - 领域: 分布式 - 难度: 中级 - 考察点: 三者保护目标各异，熔断参数要与真实故障形态匹配 - 参考答案要点: 隔离=结构防传染：线程池/信号量分舱（Hystrix 默认共享 Tomcat 线程+每依赖信号量）、连接池分舱；熔断=状态机 closed→错误率或慢调用比例超限转 open 快速失败→waitDuration（Resilience4j 默认 60s）后 half-open 放行少量探测→成功回 closed；Sentinel RT 模式=最大 RT 500ms+慢调用比例 0.8+最小请求数 5；降级=功能取舍：返缓存/默认值、砍推荐保下单；配套每依赖 timeout<上游剩余 deadline、重试带 jitter 且受熔断约束 - 追问: 下游 P99 恶化到 800ms 但错误率 0%，只看错误率的熔断为什么不救？；half-open 放几个探测请求，为什么不能全放开？；核心接口优先降级还是限流 - 评分标尺: 及格=三者定义不混；良好=能画状态机并给参数；优秀=指出 RT+错误率双信号、按依赖粒度熔断并配超时预算 - 常见误区: 把降级当熔断同义词；忘了重试风暴让熔断一直 open",
+          "document_id": "129abf0c-1c36-49fa-a953-76420d8c1835",
+          "rrf": 0.01563,
+          "fts_score": 6.242895,
+          "vec_distance": 0,
+          "channels": "fts:4"
+         }
+        ]
+       }
+      ]
+     },
+     "inputs": {
+      "explain": "false",
+      "mode": "fts",
+      "query": "连接池 maxLifetime 和哪个服务端参数有关系",
+      "top_k": "4"
+     }
+    },
+    {
+     "title": "知识库检索（seekdb 原生混合）",
+     "type": "knowledge-retrieval",
+     "status": "succeeded",
+     "elapsed_time": 0.145875,
+     "error": null,
+     "outputs": {
+      "result": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "b1ea4bed-f2ac-4203-840b-9b3ac991c7c9",
+         "retriever_from": "workflow",
+         "score": 21.557189052075334,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 859,
+         "segment_position": 17,
+         "segment_index_node_hash": "dee03ada85c8e6745038ad2f74468bcc5eec3d941f69210894035b5e4f70792c",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 连接池有哪些关键参数,连接耗尽时应用是什么现象?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 应用侧配置能力,常与线上故障关联\n- 参考答案要点: 服务端 max_connections 默认 151(8.0 起预留 1 个给 admin 的额外连接),超过报 ERROR 1040;每连接按 thread_stack、连接 buffer、临时表分配内存,大池不等于高性能;池侧核心参数 HikariCP 的 maximumPoolSize、minimumIdle、connectionTimeout(默认 30 秒)、maxLifetime(默认 30 分钟,必须小于服务端 wait_timeout 默认 28800 秒)、idleTimeout,配 keepaliveTime 防中间设备断链;池耗尽表现为获取连接超时(HikariCP 抛 SQLTransientConnectionException: Connection is not available, request timed out after 30000ms),吞吐断崖,线程栈大量等待 getConnection;根因多为慢 SQL 或未关闭连接/事务未提交,应查 SHOW PROCESSLIST 里 Sleep 且 Time 很大的连接;池大小经验值 poolSize≈核数×2+磁盘数,而不是几百\n- …(859 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488c1e99-54f2-4001-92d0-2f364410ff40",
+         "document_name": "10-行为面与HR面",
+         "data_source_type": "upload_file",
+         "segment_id": "f057f068-98da-42c1-b84b-56c804d4f889",
+         "retriever_from": "workflow",
+         "score": 9.658819288663889,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 438,
+         "segment_position": 7,
+         "segment_index_node_hash": "2104d85d711ba9bf3724653d52653e0e719649a50e6a0e950c24438774ef21ac",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "10-行为面与HR面",
+        "files": null,
+        "content": "Q: 为什么选择我们公司、这个岗位？\n- 领域: 行为面\n- 难度: 初级\n- 考察点: 动机是否来自真实调研，并能把岗位和自己的经历对上\n- 参考答案要点: 给一个可核验的具体点，如\"你们开源的连接池组件我读过，正好是我项目里踩过的坑\"；职责对上经历，如\"JD 写服务端性能优化，我实习做过两次慢查询治理\"；有对比，如\"也投了大厂基础架构，我更想去能独立闭环的小团队\"；说清能交付什么，如\"我想做检索方向，你们这块有真实流量\"；坦陈限制，如\"分布式事务经验弱，这是要补的\"\n- 追问: 你用过我们哪个产品，觉得哪里做得不好？；如果给你的是纯维护老系统的岗位，你还来吗？；两家同时给 offer，你用什么标准选？\n- 评分标尺: 及格=至少一个具体到产品或技术的事实；良好=把 JD 条目和自己的经历一一对上；优秀=能指出对方产品一处不足，并说明取舍标准\n- 常见误区: \"平台大、氛围好、有培养体系\"这类无信息量的话；只讲自己想学什么，不讲交付；把 JD 原句复述一遍当调研",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "c8fd5065-92f3-46ef-ad99-76023abc7438",
+         "retriever_from": "workflow",
+         "score": 8.385069624910201,
+         "child_chunks": [],
+         "segment_hit_count": 1,
+         "segment_word_count": 539,
+         "segment_position": 13,
+         "segment_index_node_hash": "5e599ef0fe0a0044993881c6c3f8575d9fc60837ef64f48e3d5aef672bf23a43",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: 从输入 URL 到页面出现经历哪些阶段，哪些最容易慢？\n- 领域: 网络\n- 难度: 中级\n- 考察点: 完整链路视图与瓶颈定位\n- 参考答案要点: 阶段是 DNS、TCP 握手（1 RTT）、TLS（1.2 是 2 RTT、1.3 是 1 RTT）、请求、服务端排队与处理、响应传输（受初始窗口约 10 个 MSS 约束）、浏览器解析建 DOM 与 CSSOM 后首次渲染；CSS 是渲染阻塞资源、同步 script 阻塞解析，defer 保持顺序、async 不等；最慢处常在跨地域 RTT 与握手（首字节前无法并行）、服务端连接池或线程池排队与 GC 停顿、首屏体积（100KB 在 IW10 下要多轮往返）、多余的重定向（一个 301 就是一整轮）；优化顺序是 CDN 就近、H2 或 H3、长连接与连接池、压缩与关键 CSS 内联、preconnect\n- 追问: TTFB 包含哪几段，怎么拆开测？；初始拥塞窗口为什么会限制首屏大小？\n- 评分标尺: 及格=按顺序说 DNS、TCP、TLS、请求、渲染；良好=指出 CSS 与 JS 阻塞；优秀=能把 IW10、重定向、TTFB 分解对上优化\n- 常见误区: 说拿到 HTML 才开始建连接；把所有慢都归给带宽",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "129abf0c-1c36-49fa-a953-76420d8c1835",
+         "document_name": "05-分布式与中间件",
+         "data_source_type": "upload_file",
+         "segment_id": "45888403-190a-49a8-8abb-b76194abe840",
+         "retriever_from": "workflow",
+         "score": 6.242895090592395,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 544,
+         "segment_position": 12,
+         "segment_index_node_hash": "46954dd3c6f4b658b9abcc7e3557bdf479d2e7f4fa07074aa754b8f7018dc75c",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "05-分布式与中间件",
+        "files": null,
+        "content": "Q: 熔断、降级、隔离是三个概念吗？熔断阈值和状态机怎么设计？\n- 领域: 分布式\n- 难度: 中级\n- 考察点: 三者保护目标各异，熔断参数要与真实故障形态匹配\n- 参考答案要点: 隔离=结构防传染：线程池/信号量分舱（Hystrix 默认共享 Tomcat 线程+每依赖信号量）、连接池分舱；熔断=状态机 closed→错误率或慢调用比例超限转 open 快速失败→waitDuration（Resilience4j 默认 60s）后 half-open 放行少量探测→成功回 closed；Sentinel RT 模式=最大 RT 500ms+慢调用比例 0.8+最小请求数 5；降级=功能取舍：返缓存/默认值、砍推荐保下单；配套每依赖 timeout<上游剩余 deadline、重试带 jitter 且受熔断约束\n- 追问: 下游 P99 恶化到 800ms 但错误率 0%，只看错误率的熔断为什么不救？；half-open 放几个探测请求，为什么不能全放开？；核心接口优先降级还是限流\n- 评分标尺: 及格=三者定义不混；良好=能画状态机并给参数；优秀=指出 RT+错误率双信号、按依赖粒度熔断并配超时预算\n- 常见误区: 把降级当熔断同义词；忘了重试风暴让熔断一直 open",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "365984ac-8c3f-4756-8d56-caeabe0ddbe4",
+         "document_name": "09-项目深挖",
+         "data_source_type": "upload_file",
+         "segment_id": "3389b951-456d-4115-9453-199ebd04ae68",
+         "retriever_from": "workflow",
+         "score": 5.585969083249351,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 451,
+         "segment_position": 5,
+         "segment_index_node_hash": "b9f673922201a7b1e52817e4353d0d91144d8bf4026c756b9dae65c7618c6fe4",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "09-项目深挖",
+        "files": null,
+        "content": "Q: 你这个项目的数据量和并发量大概是多少，这个数是怎么估出来的？\n- 领域: 项目\n- 难度: 高级\n- 考察点: 容量估算有没有推导链，还是随手报一个数\n- 参考答案要点: 从业务量起推，如\"10 万用户、日均下单 2 万次\"；换算 QPS，如\"2 万除以 86400 约 0.23，峰值按均值 5 倍取 1 到 2\"；算存储，如\"单行 300 字节、日增 2 万行，一年约 2GB\"；放大系数，如\"一次下单触发 6 次查询，读 QPS 乘 6\"；说清边界，如\"课程库只有 5000 条，我报的是推算的目标值\"\n- 追问: 最不确定的参数是哪个，误差可能几倍？；活动日峰值是平时 20 倍，第一步加什么？；单行 300 字节怎么定的？\n- 评分标尺: 及格=量级报得出且和项目体量不矛盾；良好=有推导过程和一个放大系数；优秀=主动区分实测值和推算值，并指出最大误差源\n- 常见误区: 张口\"百万并发\"，项目实际只有几千行；只给结果数字，追问怎么算的说不出；把日活直接当 QPS，忘了除以 86400",
+        "summary": null
+       }
+      ]
+     },
+     "inputs": {
+      "query": "连接池 maxLifetime 和哪个服务端参数有关系"
+     }
+    },
+    {
+     "title": "检索小结（确定性）",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.07077,
+     "error": null,
+     "outputs": {
+      "summary": "检索小结｜seekdb 模式=纯全文(ik倒排)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=28 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20"
+     },
+     "inputs": {
+      "mode": "fts",
+      "kr": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "b1ea4bed-f2ac-4203-840b-9b3ac991c7c9",
+         "retriever_from": "workflow",
+         "score": 21.557189052075334,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 859,
+         "segment_position": 17,
+         "segment_index_node_hash": "dee03ada85c8e6745038ad2f74468bcc5eec3d941f69210894035b5e4f70792c",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 连接池有哪些关键参数,连接耗尽时应用是什么现象?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 应用侧配置能力,常与线上故障关联\n- 参考答案要点: 服务端 max_connections 默认 151(8.0 起预留 1 个给 admin 的额外连接),超过报 ERROR 1040;每连接按 thread_stack、连接 buffer、临时表分配内存,大池不等于高性能;池侧核心参数 HikariCP 的 maximumPoolSize、minimumIdle、connectionTimeout(默认 30 秒)、maxLifetime(默认 30 分钟,必须小于服务端 wait_timeout 默认 28800 秒)、idleTimeout,配 keepaliveTime 防中间设备断链;池耗尽表现为获取连接超时(HikariCP 抛 SQLTransientConnectionException: Connection is not available, request timed out after 30000ms),吞吐断崖,线程栈大量等待 getConnection;根因多为慢 SQL 或未关闭连接/事务未提交,应查 SHOW PROCESSLIST 里 Sleep 且 Time 很大的连接;池大小经验值 poolSize≈核数×2+磁盘数,而不是几百\n- …(859 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488c1e99-54f2-4001-92d0-2f364410ff40",
+         "document_name": "10-行为面与HR面",
+         "data_source_type": "upload_file",
+         "segment_id": "f057f068-98da-42c1-b84b-56c804d4f889",
+         "retriever_from": "workflow",
+         "score": 9.658819288663889,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 438,
+         "segment_position": 7,
+         "segment_index_node_hash": "2104d85d711ba9bf3724653d52653e0e719649a50e6a0e950c24438774ef21ac",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "10-行为面与HR面",
+        "files": null,
+        "content": "Q: 为什么选择我们公司、这个岗位？\n- 领域: 行为面\n- 难度: 初级\n- 考察点: 动机是否来自真实调研，并能把岗位和自己的经历对上\n- 参考答案要点: 给一个可核验的具体点，如\"你们开源的连接池组件我读过，正好是我项目里踩过的坑\"；职责对上经历，如\"JD 写服务端性能优化，我实习做过两次慢查询治理\"；有对比，如\"也投了大厂基础架构，我更想去能独立闭环的小团队\"；说清能交付什么，如\"我想做检索方向，你们这块有真实流量\"；坦陈限制，如\"分布式事务经验弱，这是要补的\"\n- 追问: 你用过我们哪个产品，觉得哪里做得不好？；如果给你的是纯维护老系统的岗位，你还来吗？；两家同时给 offer，你用什么标准选？\n- 评分标尺: 及格=至少一个具体到产品或技术的事实；良好=把 JD 条目和自己的经历一一对上；优秀=能指出对方产品一处不足，并说明取舍标准\n- 常见误区: \"平台大、氛围好、有培养体系\"这类无信息量的话；只讲自己想学什么，不讲交付；把 JD 原句复述一遍当调研",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "c8fd5065-92f3-46ef-ad99-76023abc7438",
+         "retriever_from": "workflow",
+         "score": 8.385069624910201,
+         "child_chunks": [],
+         "segment_hit_count": 1,
+         "segment_word_count": 539,
+         "segment_position": 13,
+         "segment_index_node_hash": "5e599ef0fe0a0044993881c6c3f8575d9fc60837ef64f48e3d5aef672bf23a43",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: 从输入 URL 到页面出现经历哪些阶段，哪些最容易慢？\n- 领域: 网络\n- 难度: 中级\n- 考察点: 完整链路视图与瓶颈定位\n- 参考答案要点: 阶段是 DNS、TCP 握手（1 RTT）、TLS（1.2 是 2 RTT、1.3 是 1 RTT）、请求、服务端排队与处理、响应传输（受初始窗口约 10 个 MSS 约束）、浏览器解析建 DOM 与 CSSOM 后首次渲染；CSS 是渲染阻塞资源、同步 script 阻塞解析，defer 保持顺序、async 不等；最慢处常在跨地域 RTT 与握手（首字节前无法并行）、服务端连接池或线程池排队与 GC 停顿、首屏体积（100KB 在 IW10 下要多轮往返）、多余的重定向（一个 301 就是一整轮）；优化顺序是 CDN 就近、H2 或 H3、长连接与连接池、压缩与关键 CSS 内联、preconnect\n- 追问: TTFB 包含哪几段，怎么拆开测？；初始拥塞窗口为什么会限制首屏大小？\n- 评分标尺: 及格=按顺序说 DNS、TCP、TLS、请求、渲染；良好=指出 CSS 与 JS 阻塞；优秀=能把 IW10、重定向、TTFB 分解对上优化\n- 常见误区: 说拿到 HTML 才开始建连接；把所有慢都归给带宽",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "129abf0c-1c36-49fa-a953-76420d8c1835",
+         "document_name": "05-分布式与中间件",
+         "data_source_type": "upload_file",
+         "segment_id": "45888403-190a-49a8-8abb-b76194abe840",
+         "retriever_from": "workflow",
+         "score": 6.242895090592395,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 544,
+         "segment_position": 12,
+         "segment_index_node_hash": "46954dd3c6f4b658b9abcc7e3557bdf479d2e7f4fa07074aa754b8f7018dc75c",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "05-分布式与中间件",
+        "files": null,
+        "content": "Q: 熔断、降级、隔离是三个概念吗？熔断阈值和状态机怎么设计？\n- 领域: 分布式\n- 难度: 中级\n- 考察点: 三者保护目标各异，熔断参数要与真实故障形态匹配\n- 参考答案要点: 隔离=结构防传染：线程池/信号量分舱（Hystrix 默认共享 Tomcat 线程+每依赖信号量）、连接池分舱；熔断=状态机 closed→错误率或慢调用比例超限转 open 快速失败→waitDuration（Resilience4j 默认 60s）后 half-open 放行少量探测→成功回 closed；Sentinel RT 模式=最大 RT 500ms+慢调用比例 0.8+最小请求数 5；降级=功能取舍：返缓存/默认值、砍推荐保下单；配套每依赖 timeout<上游剩余 deadline、重试带 jitter 且受熔断约束\n- 追问: 下游 P99 恶化到 800ms 但错误率 0%，只看错误率的熔断为什么不救？；half-open 放几个探测请求，为什么不能全放开？；核心接口优先降级还是限流\n- 评分标尺: 及格=三者定义不混；良好=能画状态机并给参数；优秀=指出 RT+错误率双信号、按依赖粒度熔断并配超时预算\n- 常见误区: 把降级当熔断同义词；忘了重试风暴让熔断一直 open",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "365984ac-8c3f-4756-8d56-caeabe0ddbe4",
+         "document_name": "09-项目深挖",
+         "data_source_type": "upload_file",
+         "segment_id": "3389b951-456d-4115-9453-199ebd04ae68",
+         "retriever_from": "workflow",
+         "score": 5.585969083249351,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 451,
+         "segment_position": 5,
+         "segment_index_node_hash": "b9f673922201a7b1e52817e4353d0d91144d8bf4026c756b9dae65c7618c6fe4",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "09-项目深挖",
+        "files": null,
+        "content": "Q: 你这个项目的数据量和并发量大概是多少，这个数是怎么估出来的？\n- 领域: 项目\n- 难度: 高级\n- 考察点: 容量估算有没有推导链，还是随手报一个数\n- 参考答案要点: 从业务量起推，如\"10 万用户、日均下单 2 万次\"；换算 QPS，如\"2 万除以 86400 约 0.23，峰值按均值 5 倍取 1 到 2\"；算存储，如\"单行 300 字节、日增 2 万行，一年约 2GB\"；放大系数，如\"一次下单触发 6 次查询，读 QPS 乘 6\"；说清边界，如\"课程库只有 5000 条，我报的是推算的目标值\"\n- 追问: 最不确定的参数是哪个，误差可能几倍？；活动日峰值是平时 20 倍，第一步加什么？；单行 300 字节怎么定的？\n- 评分标尺: 及格=量级报得出且和项目体量不矛盾；良好=有推导过程和一个放大系数；优秀=主动区分实测值和推算值，并指出最大误差源\n- 常见误区: 张口\"百万并发\"，项目实际只有几千行；只给结果数字，追问怎么算的说不出；把日活直接当 QPS，忘了除以 86400",
+        "summary": null
+       }
+      ],
+      "tool_text": "{\"query\":\"连接池 maxLifetime 和哪个服务端参数有关系\",\"mode\":\"fts\",\"limit\":4,\"took_ms\":28,\"embed_ms\":5,\"results\":[{\"id\":\"baf5f555-1e85-48db-98aa-2e70773a3498\",\"text\":\"Q: 连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库 - 难度: 中级 - 考察点: 应用侧配置能力,常与线上故障关联 - 参考答案要点: 服务端 max_connections 默认 151(8.0 起预留 1 个给 admin 的额外连接),超过报 ERROR 1040;每连接按 thread_stack、连接 buffer、临时表分配内存,大池不等于高性能;池侧核心参数 HikariCP 的 maximumPoolSize、minimumIdle、connectionTimeout(默认 30 秒)、maxLifetime(默认 30 分钟,必须小于服务端 wait_timeout 默认 28800 秒)、idleTimeout,配 keepaliveTime 防中间设备断链;池耗尽表现为获取连接超时(HikariCP 抛 SQLTransientConnectionException: Connection is not available, reque…(3214 字符)"
+     }
+    },
+    {
+     "title": "面试官",
+     "type": "llm",
+     "status": "succeeded",
+     "elapsed_time": 4.213332,
+     "error": null,
+     "model": {
+      "provider": "langgenius/deepseek/deepseek",
+      "name": "deepseek-flash",
+      "usage": {
+       "prompt_tokens": 4137,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 500,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 4637,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 4.208,
+       "time_to_first_token": 0.823,
+       "time_to_generate": 3.385
+      }
+     },
+     "outputs": {
+      "text": "这道题命中「知识库检索」与「seekdb 工具检索」两条通道的同一条素材（数据库 / 中级，连接池关键参数与连接耗尽），两条通道口径一致，覆盖到池侧参数、maxLifetime 与 wait_timeout 的关系、耗尽现象、池大小估算；但这条素材只给出结论，没有展开服务端断连的具体机制，所以下面我不替你补机制。\n\n请你正面回答一道中级题：HikariCP 的 maxLifetime 与哪个服务端参数有约束关系？两者的默认值分别是多少？请说明这个大小关系为什么必须成立，以及如果配反了，应用侧会观察到什么现象、你用什么手段去确认根因。回答时请把你对以下要素的掌握都说明白：池侧还有哪些核心参数（至少三个），以及连接耗尽时 HikariCP 抛出的具体异常语义。",
+      "reasoning_content": "<!--dify-deepseek-reasoning-->用户问的是 fulltext 检索，问 maxLifetime 和哪个服务端参数有关系。素材里明确：maxLifetime 默认 30 分钟，必须小于服务端 wait_timeout 默认 28800 秒。这一条素材来自两条通道一致（知识库和 seekdb fts 都是同一条 Q）。\n\n按规则 2，每轮只做一件事：出 1 道题 → 等回答。但候选人这轮是提问（技术问题），并非作答。规则说按开关剩下的技术点正常出题。所以我应该出这道题，问 maxLifetime 与 wait_timeout 的关系，以及为什么必须小于。按难度中级。\n\n输出：第一段说明素材来自哪条通道、覆盖程度。第二段出题。\n\n不要写检索小结，不要命中数量/毫秒。可以说明两条通道一致。\n\n出题：请说明 maxLifetime 与哪个服务端参数相关、默认值各是多少、为什么必须满足大小关系，以及违反后线上会出现什么现象。同时可以带上追问？规则说每轮只做一个动作：出题。追问应该在候选人回答后再抛。所以只出题。\n\n但素材里对\"为什么必须小于 wait_timeout\"的机制解释：素材只说了必须小于，没有给出更细的机制说明（比如服务端会主动 kill 空闲连接）。我不应编造。可以问候选人自己解释，评分时只用素材。让我只出题，避免编造机制。\n\n写正文。",
+      "usage": {
+       "prompt_tokens": 4137,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 500,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 4637,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 4.208,
+       "time_to_first_token": 0.823,
+       "time_to_generate": 3.385
+      },
+      "finish_reason": "stop"
+     },
+     "inputs": {
+      "#sys.query#": "全文：连接池 maxLifetime 和哪个服务端参数有关系",
+      "#1000000000004.text#": "{\"query\":\"连接池 maxLifetime 和哪个服务端参数有关系\",\"mode\":\"fts\",\"limit\":4,\"took_ms\":28,\"embed_ms\":5,\"results\":[{\"id\":\"baf5f555-1e85-48db-98aa-2e70773a3498\",\"text\":\"Q: 连接池有哪些关键参数,连接耗尽时应用是什么现象? - 领域: 数据库 - 难度: 中级 - 考察点: 应用侧配置能力,常与线上故障关联 - 参考答案要点: 服务端 max_connections 默认 151(8.0 起预留 1 个给 admin 的额外连接),超过报 ERROR 1040;每连接按 thread_stack、连接 buffer、临时表分配内存,大池不等于高性能;池侧核心参数 HikariCP 的 maximumPoolSize、minimumIdle、connectionTimeout(默认 30 秒)、maxLifetime(默认 30 分钟,必须小于服务端 wait_timeout 默认 28800 秒)、idleTimeout,配 keepaliveTime 防中间设备断链;池耗尽表现为获取连接超时(HikariCP 抛 SQLTransientConnectionException: Connection is not available, reque…(3214 字符)",
+      "#context#": "Q: 连接池有哪些关键参数,连接耗尽时应用是什么现象?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 应用侧配置能力,常与线上故障关联\n- 参考答案要点: 服务端 max_connections 默认 151(8.0 起预留 1 个给 admin 的额外连接),超过报 ERROR 1040;每连接按 thread_stack、连接 buffer、临时表分配内存,大池不等于高性能;池侧核心参数 HikariCP 的 maximumPoolSize、minimumIdle、connectionTimeout(默认 30 秒)、maxLifetime(默认 30 分钟,必须小于服务端 wait_timeout 默认 28800 秒)、idleTimeout,配 keepaliveTime 防中间设备断链;池耗尽表现为获取连接超时(HikariCP 抛 SQLTransientConnectionException: Connection is not available, request timed out after 30000ms),吞吐断崖,线程栈大量等待 getConnection;根因多为慢 SQL 或未关闭连接/事务未提交,应查 SHOW PROCESSLIST 里 Sleep 且 Time 很大的连接;池大小经验值 poolSize≈核数×2+磁盘数,而不是几百\n- …(2835 字符)",
+      "model_provider": "langgenius/deepseek/deepseek",
+      "model_name": "deepseek-flash"
+     }
+    },
+    {
+     "title": "回答",
+     "type": "answer",
+     "status": "succeeded",
+     "elapsed_time": 0.000091,
+     "error": null,
+     "outputs": {
+      "answer": "这道题命中「知识库检索」与「seekdb 工具检索」两条通道的同一条素材（数据库 / 中级，连接池关键参数与连接耗尽），两条通道口径一致，覆盖到池侧参数、maxLifetime 与 wait_timeout 的关系、耗尽现象、池大小估算；但这条素材只给出结论，没有展开服务端断连的具体机制，所以下面我不替你补机制。\n\n请你正面回答一道中级题：HikariCP 的 maxLifetime 与哪个服务端参数有约束关系？两者的默认值分别是多少？请说明这个大小关系为什么必须成立，以及如果配反了，应用侧会观察到什么现象、你用什么手段去确认根因。回答时请把你对以下要素的掌握都说明白：池侧还有哪些核心参数（至少三个），以及连接耗尽时 HikariCP 抛出的具体异常语义。\n\n检索小结｜seekdb 模式=纯全文(ik倒排)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=28 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+      "files": []
+     },
+     "inputs": {}
+    }
+   ],
+   "answer": "这道题命中「知识库检索」与「seekdb 工具检索」两条通道的同一条素材（数据库 / 中级，连接池关键参数与连接耗尽），两条通道口径一致，覆盖到池侧参数、maxLifetime 与 wait_timeout 的关系、耗尽现象、池大小估算；但这条素材只给出结论，没有展开服务端断连的具体机制，所以下面我不替你补机制。\n\n请你正面回答一道中级题：HikariCP 的 maxLifetime 与哪个服务端参数有约束关系？两者的默认值分别是多少？请说明这个大小关系为什么必须成立，以及如果配反了，应用侧会观察到什么现象、你用什么手段去确认根因。回答时请把你对以下要素的掌握都说明白：池侧还有哪些核心参数（至少三个），以及连接耗尽时 HikariCP 抛出的具体异常语义。\n\n检索小结｜seekdb 模式=纯全文(ik倒排)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=28 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+   "events": [
+    {
+     "event": "workflow_finished",
+     "status": "succeeded",
+     "error": null,
+     "elapsed_time": 4.553330932999415
+    }
+   ],
+   "workflow_run_id": "8f4b0177-0a70-414d-aa8c-5e6130422586",
+   "message_end": {
+    "answer": "",
+    "metadata": {}
+   },
+   "summary": {
+    "知识库检索": {
+     "hits": 5,
+     "top_score": "21.557",
+     "titles": [
+      "01-数据库原理与InnoDB",
+      "10-行为面与HR面",
+      "04-计算机网络",
+      "05-分布式与中间件",
+      "09-项目深挖"
+     ],
+     "elapsed_time": 0.145875
+    },
+    "seekdb工具": {
+     "hits": 4,
+     "mode": "fts",
+     "took_ms": 28,
+     "embed_ms": 5,
+     "has_explain": false,
+     "top_channels": [
+      "fts:1 rrf=0.01639",
+      "fts:2 rrf=0.01613",
+      "fts:3 rrf=0.01587",
+      "fts:4 rrf=0.01563"
+     ],
+     "elapsed_time": 0.052078
+    },
+    "生效模式": "纯全文检索（只走 ik 倒排）",
+    "answer_length": 442
+   }
+  }
+ ]
+}

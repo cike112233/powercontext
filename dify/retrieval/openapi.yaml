@@ -1,0 +1,95 @@
+openapi: 3.0.1
+info:
+  title: seekdb混合检索
+  description: >-
+    直接查询 Dify 落在 seekdb（OceanBase 单机版）里的知识库向量表，一条 SQL 同时走
+    ik 全文索引（MATCH ... AGAINST）和 HNSW 向量索引（l2_distance ... APPROXIMATE），
+    应用层用 RRF 融合两路排名。可切换 hybrid / vector / fts 三种模式做检索消融，
+    并返回 seekdb 的 EXPLAIN 执行计划作为"确实走了两个索引"的证据。
+  version: 1.0.0
+servers:
+  - url: http://192.168.65.254:3012
+paths:
+  /search:
+    post:
+      operationId: seekdb_hybrid_search
+      summary: seekdb 全文+向量混合检索
+      description: 输入一句面试问题，返回知识库中最相关的面试题目片段（含 RRF 分数、命中通道、耗时、执行计划）。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: 检索文本（一般直接传用户本轮提问）
+                mode:
+                  type: string
+                  description: 检索模式：hybrid=全文+向量 RRF 融合；vector=仅向量（HNSW）；fts=仅全文（ik）
+                  default: hybrid
+                top_k:
+                  type: integer
+                  description: 返回条数，1-20
+                  default: 5
+                explain:
+                  type: string
+                  description: 是否返回 seekdb 的 EXPLAIN 执行计划（true/false）
+                  default: "false"
+      responses:
+        "200":
+          description: 检索结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  query:
+                    type: string
+                    description: 本次检索用的文本
+                  mode:
+                    type: string
+                    description: 实际生效的检索模式
+                  took_ms:
+                    type: integer
+                    description: 端到端耗时（毫秒）
+                  embed_ms:
+                    type: integer
+                    description: 查询向量化耗时（毫秒）
+                  results:
+                    type: array
+                    description: 命中的知识库片段
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                          description: 片段正文（一道面试题的完整素材）
+                        rrf:
+                          type: number
+                          description: RRF 融合分数
+                        fts_score:
+                          type: number
+                          description: 全文通道相关度分
+                        vec_distance:
+                          type: number
+                          description: 向量通道 L2 距离
+                        channels:
+                          type: string
+                          description: 命中通道与名次，例如 fts:2,vec:13
+                  explain:
+                    type: string
+                    description: seekdb EXPLAIN 算子树（TEXT RETRIEVAL SCAN / VECTOR INDEX SCAN）
+        default:
+          description: 错误
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: 错误信息

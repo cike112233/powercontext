@@ -1,0 +1,482 @@
+{
+ "started_at": "2026-10-30T01:58:10.706Z",
+ "base": "http://localhost",
+ "turns": [
+  {
+   "turn": 1,
+   "query": "帮我从数据库方向开始模拟一面，先问一道中级题",
+   "nodes": [
+    {
+     "title": "开始",
+     "type": "start",
+     "status": "succeeded",
+     "elapsed_time": 0.000091,
+     "error": null,
+     "outputs": {},
+     "inputs": {}
+    },
+    {
+     "title": "模式路由",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.058278,
+     "error": null,
+     "outputs": {
+      "clean_query": "帮我从数据库方向开始模拟一面，先问一道中级题",
+      "explain": "false",
+      "mode": "hybrid",
+      "mode_label": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）"
+     },
+     "inputs": {
+      "text": "帮我从数据库方向开始模拟一面，先问一道中级题"
+     }
+    },
+    {
+     "title": "seekdb 混合检索工具（可消融）",
+     "type": "tool",
+     "status": "succeeded",
+     "elapsed_time": 0.185714,
+     "error": null,
+     "outputs": {
+      "text": "{\"query\":\"帮我从数据库方向开始模拟一面，先问一道中级题\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":170,\"embed_ms\":5,\"results\":[{\"id\":\"0c760d2a-8804-43e4-8c3a-ce9c9e95f95a\",\"text\":\"Q: 候选人明显在背题，我该怎么确认他是真理解？ - 领域: 项目 - 难度: 高级 - 考察点: 面试官有没有可复现的验证动作，而不是凭语感判定 - 参考答案要点: 换措辞，如\\\"原样问 MVCC 定义答得流利，就改问一条 UPDATE 里哪个环节用到它\\\"；改前提，如\\\"把熟悉题目里的一个参数换掉，看结论是否跟着变\\\"；要落地，如\\\"你项目哪一处用到它、数据量多大\\\"；反着问，如\\\"把这个机制去掉会出什么问题\\\"；识别信号，如\\\"语速均匀无停顿、全程没有一个具体名词\\\"；两三个手段组合即可判定，不当面对质 - 追问: 如果他其实是真理解只是表达机械，你怎么区分？；确认是背题之后，这一轮的分数怎么记？；你能不能现场出一道背不下来、只有理解才答得上的题？ - 评分标尺: 及格=会换问法而不是重复原问；良好=用改前提加要落地交叉验证；优秀=分开记录背来的知识和自己的经验 - 常见误区: 认定背题就把整题打零，忽略知识本身正确；追问到对方说不出话，变成羞辱；只写\\\"感觉是在背\\\"，没有验证…(2983 字符)",
+      "files": [],
+      "json": [
+       {
+        "query": "帮我从数据库方向开始模拟一面，先问一道中级题",
+        "mode": "hybrid",
+        "limit": 4,
+        "took_ms": 170,
+        "embed_ms": 5,
+        "results": [
+         {
+          "id": "0c760d2a-8804-43e4-8c3a-ce9c9e95f95a",
+          "text": "Q: 候选人明显在背题，我该怎么确认他是真理解？ - 领域: 项目 - 难度: 高级 - 考察点: 面试官有没有可复现的验证动作，而不是凭语感判定 - 参考答案要点: 换措辞，如\"原样问 MVCC 定义答得流利，就改问一条 UPDATE 里哪个环节用到它\"；改前提，如\"把熟悉题目里的一个参数换掉，看结论是否跟着变\"；要落地，如\"你项目哪一处用到它、数据量多大\"；反着问，如\"把这个机制去掉会出什么问题\"；识别信号，如\"语速均匀无停顿、全程没有一个具体名词\"；两三个手段组合即可判定，不当面对质 - 追问: 如果他其实是真理解只是表达机械，你怎么区分？；确认是背题之后，这一轮的分数怎么记？；你能不能现场出一道背不下来、只有理解才答得上的题？ - 评分标尺: 及格=会换问法而不是重复原问；良好=用改前提加要落地交叉验证；优秀=分开记录背来的知识和自己的经验 - 常见误区: 认定背题就把整题打零，忽略知识本身正确；追问到对方说不出话，变成羞辱；只写\"感觉是在背\"，没有验证过程 ## 控场、反馈与压力面",
+          "document_id": "e36614b4-5a64-4171-b8bd-ea8cc8158e60",
+          "rrf": 0.03151,
+          "fts_score": 12.087196,
+          "vec_distance": 0.871875,
+          "channels": "fts:2,vec:5"
+         },
+         {
+          "id": "0ea8f684-395f-4fb5-a899-47eb81f575f5",
+          "text": "Q: 从一面到终面，每一轮我应该重点确认什么？ - 领域: 行为面 - 难度: 高级 - 考察点: 面试官对本轮产出和判据是否清楚，轮次之间不重复不越位 - 参考答案要点: 一面守硬门槛，如\"计算机基础加手写代码，只给通过与不通过\"；二面验工程能力，如\"给一个真实场景做设计，看他会不会先问约束\"；三面做项目深挖，如\"逼到细节和数字，分辨是参与还是主导\"；HR 与终面看动机和稳定性，如\"选择理由、抗压表现、三年方向是否与岗位重合\"；每轮只解决一个不确定性，如\"别在基础轮问职业规划\"；轮次间传递信息，如\"前轮确认过的能力不再重复，写下待验证点\" - 追问: 一面放过了、二面挂了，你的评语哪一步出了问题？；两轮给分相差两档时你以谁为准，为什么？；校招和社招的轮次侧重点该有什么差别？ - 评分标尺: 及格=说清每轮目标且互不重叠；良好=每轮有明确判据和产出物；优秀=主动设计轮次间信息传递，避免重复盘问 - 常见误区: 每一轮都从自我介绍重新问一遍；把\"感觉不错\"写进评语；终面还在纠结语法细节",
+          "document_id": "e36614b4-5a64-4171-b8bd-ea8cc8158e60",
+          "rrf": 0.03009,
+          "fts_score": 15.252762,
+          "vec_distance": 0.891118,
+          "channels": "fts:1,vec:13"
+         },
+         {
+          "id": "f6586a48-09e2-43ff-aba8-01532a98967c",
+          "text": "Q: 用一分钟讲一下你项目里最难的那个技术点，难在哪？ - 领域: 项目 - 难度: 中级 - 考察点: 能否限时把难点定位到具体机制，而不是笼统说做了性能优化 - 参考答案要点: 背景带规模，如\"日均 30 万次查询、列表页 JOIN 5 张表\"；难点落到机制，如\"深翻页 LIMIT 100000,20 要扫完偏移行再丢弃\"；方案与代价，如\"改游标分页走索引，代价是不支持任意跳页\"；数据对比，如\"P99 从 2.1 秒降到 180 毫秒\"；复盘，如\"根因是索引覆盖不足，不是数据库慢\" - 追问: 这个瓶颈是你自己发现的还是别人告诉你的，当时哪个指标先异常？；你还试过哪些替代方案，为什么没选？；流量再涨十倍，这套方案先在哪一环崩掉？ - 评分标尺: 及格=说清难点且和自己写的代码有关；良好=给出方案并带前后对比的数字；优秀=讲得清方案的代价与失效边界 - 常见误区: 把难点说成\"并发太高\"\"数据量大\"这类环境描述；全程说\"我们优化了性能\"，被问 P99 是多少就卡住；一个放弃项都不给",
+          "document_id": "365984ac-8c3f-4756-8d56-caeabe0ddbe4",
+          "rrf": 0.03008,
+          "fts_score": 5.937207,
+          "vec_distance": 0.871949,
+          "channels": "fts:7,vec:6"
+         },
+         {
+          "id": "c2956f3e-789e-4e06-9d14-e8f9a950da99",
+          "text": "Q: 求前 K 个高频元素，出现并列时你怎么处理？ - 领域: 算法 - 难度: 中级 - 考察点: 先聚合再选择的建模习惯，以及对并列语义的敏感度 - 参考答案要点: 第一步 HashMap 统计频次 O(n)；第二步对 (value, count) 取 Top-K：小顶堆维护 K 个，count 更大使整体大于堆顶时替换，O(n log k) 空间 O(k)；或快选按 count 找出第 K 大阈值 t 再收集所有 count ≥ t 的项；并列必须问清题面：第 K 名与第 K+1 名同频次时，\"返回任意 K 个\"要再加 tie-break（例如按 value），\"全部返回\"则结果可能多于 K；SQL 语义对应 row_number 硬截断、rank 跳号并保留并列、dense_rank 不跳号，深分页 limit offset 要换成游标式 where count < last；键基数极大且允许近似时先 Count-Min Sketch 估频次再进堆（误差 εN、置信 1-δ） - 追问: 10 亿条日志的 URL 频次 Top-100、单机 8GB 怎么做？把每台机器的局部 Top-K 合并成全局 Top-K，为什么可能是错的？要求严格精确时你怎么保证？ - 评分标尺: 及格=给出哈希计数+堆两步；良好=能区分并列语义并解释 rank/dense_rank/row_numb…(716 字符)",
+          "document_id": "e1950d52-d887-4730-9b2c-7f78a4574dfe",
+          "rrf": 0.02941,
+          "fts_score": 5.916693,
+          "vec_distance": 0.87612,
+          "channels": "fts:8,vec:8"
+         }
+        ]
+       }
+      ]
+     },
+     "inputs": {
+      "explain": "false",
+      "mode": "hybrid",
+      "query": "帮我从数据库方向开始模拟一面，先问一道中级题",
+      "top_k": "4"
+     }
+    },
+    {
+     "title": "知识库检索（seekdb 原生混合）",
+     "type": "knowledge-retrieval",
+     "status": "succeeded",
+     "elapsed_time": 0.219431,
+     "error": null,
+     "outputs": {
+      "result": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "e36614b4-5a64-4171-b8bd-ea8cc8158e60",
+         "document_name": "11-面试流程与评分总则",
+         "data_source_type": "upload_file",
+         "segment_id": "10479cd8-5c48-469f-856b-627299524731",
+         "retriever_from": "workflow",
+         "score": 15.25276238590655,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 448,
+         "segment_position": 1,
+         "segment_index_node_hash": "92914984c3d4aafe0aa174e94d6e41452cfcc3d43847e30761722fca27d4e71a",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "11-面试流程与评分总则",
+        "files": null,
+        "content": "Q: 从一面到终面，每一轮我应该重点确认什么？\n- 领域: 行为面\n- 难度: 高级\n- 考察点: 面试官对本轮产出和判据是否清楚，轮次之间不重复不越位\n- 参考答案要点: 一面守硬门槛，如\"计算机基础加手写代码，只给通过与不通过\"；二面验工程能力，如\"给一个真实场景做设计，看他会不会先问约束\"；三面做项目深挖，如\"逼到细节和数字，分辨是参与还是主导\"；HR 与终面看动机和稳定性，如\"选择理由、抗压表现、三年方向是否与岗位重合\"；每轮只解决一个不确定性，如\"别在基础轮问职业规划\"；轮次间传递信息，如\"前轮确认过的能力不再重复，写下待验证点\"\n- 追问: 一面放过了、二面挂了，你的评语哪一步出了问题？；两轮给分相差两档时你以谁为准，为什么？；校招和社招的轮次侧重点该有什么差别？\n- 评分标尺: 及格=说清每轮目标且互不重叠；良好=每轮有明确判据和产出物；优秀=主动设计轮次间信息传递，避免重复盘问\n- 常见误区: 每一轮都从自我介绍重新问一遍；把\"感觉不错\"写进评语；终面还在纠结语法细节",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "e36614b4-5a64-4171-b8bd-ea8cc8158e60",
+         "document_name": "11-面试流程与评分总则",
+         "data_source_type": "upload_file",
+         "segment_id": "866dcb24-7e54-4d2e-92e9-968d262a8e3d",
+         "retriever_from": "workflow",
+         "score": 12.087196212809271,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 453,
+         "segment_position": 5,
+         "segment_index_node_hash": "054ceea3bfde2e0ee185306477d2e8fcbd74e1bce5bbef7d11d764ca8400f0af",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "11-面试流程与评分总则",
+        "files": null,
+        "content": "Q: 候选人明显在背题，我该怎么确认他是真理解？\n- 领域: 项目\n- 难度: 高级\n- 考察点: 面试官有没有可复现的验证动作，而不是凭语感判定\n- 参考答案要点: 换措辞，如\"原样问 MVCC 定义答得流利，就改问一条 UPDATE 里哪个环节用到它\"；改前提，如\"把熟悉题目里的一个参数换掉，看结论是否跟着变\"；要落地，如\"你项目哪一处用到它、数据量多大\"；反着问，如\"把这个机制去掉会出什么问题\"；识别信号，如\"语速均匀无停顿、全程没有一个具体名词\"；两三个手段组合即可判定，不当面对质\n- 追问: 如果他其实是真理解只是表达机械，你怎么区分？；确认是背题之后，这一轮的分数怎么记？；你能不能现场出一道背不下来、只有理解才答得上的题？\n- 评分标尺: 及格=会换问法而不是重复原问；良好=用改前提加要落地交叉验证；优秀=分开记录背来的知识和自己的经验\n- 常见误区: 认定背题就把整题打零，忽略知识本身正确；追问到对方说不出话，变成羞辱；只写\"感觉是在背\"，没有验证过程\n\n## 控场、反馈与压力面",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "68246021-a18b-43ba-8519-4e6ceaac064c",
+         "document_name": "06-系统设计与容量估算",
+         "data_source_type": "upload_file",
+         "segment_id": "a88e10f5-ab6b-438d-88d2-b83ee330bae7",
+         "retriever_from": "workflow",
+         "score": 7.908259486312378,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 553,
+         "segment_position": 1,
+         "segment_index_node_hash": "0474d4e83da662163b2d9047c657b4ec10d032322b53a3ae6f99639c68490473",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "06-系统设计与容量估算",
+        "files": null,
+        "content": "Q: 设计一个短链接系统，把长 URL 转成 6 位短码，用户点开就跳转，你开始吧。\n- 领域: 系统设计\n- 难度: 中级\n- 考察点: 是否先澄清规模、读写比、是否要统计点击、301/302，再给方案\n- 参考答案要点: 先问：日生成量（设 1 亿）、读写比（设 100:1）、保留期、要不要点击统计；生成：62 字符集（a-zA-Z0-9）6 位≈568 亿容量够用，号段/雪花全局 ID 做 Base62 编码优于 hash（无冲突、位宽可算）；跳转用 302（每次经过服务端才能统计，301 被浏览器缓存统计不到）；存储短码→长链 KV，1 亿/天×200B=20GB/天按短码哈希分片；读路径本地缓存+Redis，命中 90% 时回源约 (1e8×100/86400)×10%≈1.2 万 QPS 再摊到分片；配限频、钓鱼黑名单、过期归档\n- 追问: 为什么不用自增 ID 直接当短码，暴露什么、怎么防枚举？；要实时统计每次点击，写放大怎么控制\n- 评分标尺: 及格=先问需求并给出 Base62+302 完整链路；良好=能对比 hash/编码并量化容量；优秀=给出命中率与回源 QPS 估算\n- 常见误区: 上来 MD5 截取不算碰撞；忽略 301/302 对统计的影响；没把过期删除计入设计",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "68246021-a18b-43ba-8519-4e6ceaac064c",
+         "document_name": "06-系统设计与容量估算",
+         "data_source_type": "upload_file",
+         "segment_id": "e132d2fb-1ca7-4387-be37-3fd4e345004c",
+         "retriever_from": "workflow",
+         "score": 7.256381898810135,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 582,
+         "segment_position": 9,
+         "segment_index_node_hash": "9fda52d7508651a0917aedf15254bebd21faa4d8fbdaa2183c27a168bec63fc1",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "06-系统设计与容量估算",
+        "files": null,
+        "content": "Q: 设计支付回调接口：支付宝通知已付款，怎么不丢单、不重复入账？\n- 领域: 系统设计\n- 难度: 高级\n- 考察点: 先问资金口径与对账周期，再给验签+幂等+状态机+反查闭环\n- 参考答案要点: 先问：多发权益是不是资损方向、渠道（重试策略不同）、对账频率；入口四校验：RSA2 验签、金额==订单应付、商户号匹配、订单存在；幂等：渠道交易号 trade_no 在回调流水表建唯一索引，撞键=重复通知直接回 SUCCESS；状态机 CAS：UPDATE orders SET status=PAID WHERE order_no=? AND status=UNPAID，影响行数 1 才发权益且与订单更新同本地事务；失败回非成功让渠道重试（支付宝约 25 小时内间隔递增）；回调只是触发信号：定时反查交易查询接口+T+1 对账文件双向核对才是真相\n- 追问: 权益发到一半崩了且已回 SUCCESS，怎么恢复，为什么这是最坏时序？；幂等键选 out_trade_no 还是 trade_no，区别？；渠道有我方无和我方有渠道无对账各怎么处理\n- 评分标尺: 及格=验签+唯一键幂等+状态机齐全；良好=讲清应答语义与渠道重试机制的关系；优秀=回调/反查/对账三线闭环且正确处理部分成功\n- 常见误区: 只验签不验金额；先查状态再更新不用 CAS；把回调当事实来源",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "14efad1f-d514-4d09-9f03-3b9607ad6ae4",
+         "retriever_from": "workflow",
+         "score": 7.236964265002848,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 700,
+         "segment_position": 4,
+         "segment_index_node_hash": "d763d36e7567fbdb9dc1fc26b3f42125c61deb7c10a68f08d44be433adce4195",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 最左前缀原则是什么意思,联合索引 (a,b,c) 为什么查询 b 用不上?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 对联合索引排序规则和 optimizer 行为的理解深度\n- 参考答案要点: 联合索引按 a 排序,a 相同按 b 排序,b 相同按 c 排序,只有从最左列开始连续使用才能保证有序可二分,跳过 a 直接按 b 过滤时 b 在全局是乱序的;等值命中列之后遇到 range 条件,range 之后的列不再用于精确定位,例如 a=1 and b>2 and c=3 中只有 (a,b) 参与索引扫描,c 需要靠 ICP 在索引层过滤;MySQL 8.0.13 起有 index skip scan,当最左列基数很低(如只有 male/female)时可跳过最左列,EXPLAIN 显示 Using index skip scan;等值列表顺序无关,优化器会重排 b=2 and a=1 为 (a,b);范围条件写对最左前缀长度可用 key_len 校验\n- 追问: key_len 怎么算出联合索引实际用了几列?；a=1 and b>2 and c=3 里 c 完全没用吗,MySQL 有没有办法在索引层过滤它?；把联合索引顺序改成 (b,a,c) 原来的查询还能命中吗?\n- 评分标尺: 及格=答到索引按列顺序排序、必须从最左列开始;良好=讲清 range 之后列失效 …(700 字符)",
+        "summary": null
+       }
+      ]
+     },
+     "inputs": {
+      "query": "帮我从数据库方向开始模拟一面，先问一道中级题"
+     }
+    },
+    {
+     "title": "检索小结（确定性）",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.068968,
+     "error": null,
+     "outputs": {
+      "summary": "检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=170 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20"
+     },
+     "inputs": {
+      "mode": "hybrid",
+      "kr": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "e36614b4-5a64-4171-b8bd-ea8cc8158e60",
+         "document_name": "11-面试流程与评分总则",
+         "data_source_type": "upload_file",
+         "segment_id": "10479cd8-5c48-469f-856b-627299524731",
+         "retriever_from": "workflow",
+         "score": 15.25276238590655,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 448,
+         "segment_position": 1,
+         "segment_index_node_hash": "92914984c3d4aafe0aa174e94d6e41452cfcc3d43847e30761722fca27d4e71a",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "11-面试流程与评分总则",
+        "files": null,
+        "content": "Q: 从一面到终面，每一轮我应该重点确认什么？\n- 领域: 行为面\n- 难度: 高级\n- 考察点: 面试官对本轮产出和判据是否清楚，轮次之间不重复不越位\n- 参考答案要点: 一面守硬门槛，如\"计算机基础加手写代码，只给通过与不通过\"；二面验工程能力，如\"给一个真实场景做设计，看他会不会先问约束\"；三面做项目深挖，如\"逼到细节和数字，分辨是参与还是主导\"；HR 与终面看动机和稳定性，如\"选择理由、抗压表现、三年方向是否与岗位重合\"；每轮只解决一个不确定性，如\"别在基础轮问职业规划\"；轮次间传递信息，如\"前轮确认过的能力不再重复，写下待验证点\"\n- 追问: 一面放过了、二面挂了，你的评语哪一步出了问题？；两轮给分相差两档时你以谁为准，为什么？；校招和社招的轮次侧重点该有什么差别？\n- 评分标尺: 及格=说清每轮目标且互不重叠；良好=每轮有明确判据和产出物；优秀=主动设计轮次间信息传递，避免重复盘问\n- 常见误区: 每一轮都从自我介绍重新问一遍；把\"感觉不错\"写进评语；终面还在纠结语法细节",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "e36614b4-5a64-4171-b8bd-ea8cc8158e60",
+         "document_name": "11-面试流程与评分总则",
+         "data_source_type": "upload_file",
+         "segment_id": "866dcb24-7e54-4d2e-92e9-968d262a8e3d",
+         "retriever_from": "workflow",
+         "score": 12.087196212809271,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 453,
+         "segment_position": 5,
+         "segment_index_node_hash": "054ceea3bfde2e0ee185306477d2e8fcbd74e1bce5bbef7d11d764ca8400f0af",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "11-面试流程与评分总则",
+        "files": null,
+        "content": "Q: 候选人明显在背题，我该怎么确认他是真理解？\n- 领域: 项目\n- 难度: 高级\n- 考察点: 面试官有没有可复现的验证动作，而不是凭语感判定\n- 参考答案要点: 换措辞，如\"原样问 MVCC 定义答得流利，就改问一条 UPDATE 里哪个环节用到它\"；改前提，如\"把熟悉题目里的一个参数换掉，看结论是否跟着变\"；要落地，如\"你项目哪一处用到它、数据量多大\"；反着问，如\"把这个机制去掉会出什么问题\"；识别信号，如\"语速均匀无停顿、全程没有一个具体名词\"；两三个手段组合即可判定，不当面对质\n- 追问: 如果他其实是真理解只是表达机械，你怎么区分？；确认是背题之后，这一轮的分数怎么记？；你能不能现场出一道背不下来、只有理解才答得上的题？\n- 评分标尺: 及格=会换问法而不是重复原问；良好=用改前提加要落地交叉验证；优秀=分开记录背来的知识和自己的经验\n- 常见误区: 认定背题就把整题打零，忽略知识本身正确；追问到对方说不出话，变成羞辱；只写\"感觉是在背\"，没有验证过程\n\n## 控场、反馈与压力面",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "68246021-a18b-43ba-8519-4e6ceaac064c",
+         "document_name": "06-系统设计与容量估算",
+         "data_source_type": "upload_file",
+         "segment_id": "a88e10f5-ab6b-438d-88d2-b83ee330bae7",
+         "retriever_from": "workflow",
+         "score": 7.908259486312378,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 553,
+         "segment_position": 1,
+         "segment_index_node_hash": "0474d4e83da662163b2d9047c657b4ec10d032322b53a3ae6f99639c68490473",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "06-系统设计与容量估算",
+        "files": null,
+        "content": "Q: 设计一个短链接系统，把长 URL 转成 6 位短码，用户点开就跳转，你开始吧。\n- 领域: 系统设计\n- 难度: 中级\n- 考察点: 是否先澄清规模、读写比、是否要统计点击、301/302，再给方案\n- 参考答案要点: 先问：日生成量（设 1 亿）、读写比（设 100:1）、保留期、要不要点击统计；生成：62 字符集（a-zA-Z0-9）6 位≈568 亿容量够用，号段/雪花全局 ID 做 Base62 编码优于 hash（无冲突、位宽可算）；跳转用 302（每次经过服务端才能统计，301 被浏览器缓存统计不到）；存储短码→长链 KV，1 亿/天×200B=20GB/天按短码哈希分片；读路径本地缓存+Redis，命中 90% 时回源约 (1e8×100/86400)×10%≈1.2 万 QPS 再摊到分片；配限频、钓鱼黑名单、过期归档\n- 追问: 为什么不用自增 ID 直接当短码，暴露什么、怎么防枚举？；要实时统计每次点击，写放大怎么控制\n- 评分标尺: 及格=先问需求并给出 Base62+302 完整链路；良好=能对比 hash/编码并量化容量；优秀=给出命中率与回源 QPS 估算\n- 常见误区: 上来 MD5 截取不算碰撞；忽略 301/302 对统计的影响；没把过期删除计入设计",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "68246021-a18b-43ba-8519-4e6ceaac064c",
+         "document_name": "06-系统设计与容量估算",
+         "data_source_type": "upload_file",
+         "segment_id": "e132d2fb-1ca7-4387-be37-3fd4e345004c",
+         "retriever_from": "workflow",
+         "score": 7.256381898810135,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 582,
+         "segment_position": 9,
+         "segment_index_node_hash": "9fda52d7508651a0917aedf15254bebd21faa4d8fbdaa2183c27a168bec63fc1",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "06-系统设计与容量估算",
+        "files": null,
+        "content": "Q: 设计支付回调接口：支付宝通知已付款，怎么不丢单、不重复入账？\n- 领域: 系统设计\n- 难度: 高级\n- 考察点: 先问资金口径与对账周期，再给验签+幂等+状态机+反查闭环\n- 参考答案要点: 先问：多发权益是不是资损方向、渠道（重试策略不同）、对账频率；入口四校验：RSA2 验签、金额==订单应付、商户号匹配、订单存在；幂等：渠道交易号 trade_no 在回调流水表建唯一索引，撞键=重复通知直接回 SUCCESS；状态机 CAS：UPDATE orders SET status=PAID WHERE order_no=? AND status=UNPAID，影响行数 1 才发权益且与订单更新同本地事务；失败回非成功让渠道重试（支付宝约 25 小时内间隔递增）；回调只是触发信号：定时反查交易查询接口+T+1 对账文件双向核对才是真相\n- 追问: 权益发到一半崩了且已回 SUCCESS，怎么恢复，为什么这是最坏时序？；幂等键选 out_trade_no 还是 trade_no，区别？；渠道有我方无和我方有渠道无对账各怎么处理\n- 评分标尺: 及格=验签+唯一键幂等+状态机齐全；良好=讲清应答语义与渠道重试机制的关系；优秀=回调/反查/对账三线闭环且正确处理部分成功\n- 常见误区: 只验签不验金额；先查状态再更新不用 CAS；把回调当事实来源",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "14efad1f-d514-4d09-9f03-3b9607ad6ae4",
+         "retriever_from": "workflow",
+         "score": 7.236964265002848,
+         "child_chunks": [],
+         "segment_hit_count": 0,
+         "segment_word_count": 700,
+         "segment_position": 4,
+         "segment_index_node_hash": "d763d36e7567fbdb9dc1fc26b3f42125c61deb7c10a68f08d44be433adce4195",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 最左前缀原则是什么意思,联合索引 (a,b,c) 为什么查询 b 用不上?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 对联合索引排序规则和 optimizer 行为的理解深度\n- 参考答案要点: 联合索引按 a 排序,a 相同按 b 排序,b 相同按 c 排序,只有从最左列开始连续使用才能保证有序可二分,跳过 a 直接按 b 过滤时 b 在全局是乱序的;等值命中列之后遇到 range 条件,range 之后的列不再用于精确定位,例如 a=1 and b>2 and c=3 中只有 (a,b) 参与索引扫描,c 需要靠 ICP 在索引层过滤;MySQL 8.0.13 起有 index skip scan,当最左列基数很低(如只有 male/female)时可跳过最左列,EXPLAIN 显示 Using index skip scan;等值列表顺序无关,优化器会重排 b=2 and a=1 为 (a,b);范围条件写对最左前缀长度可用 key_len 校验\n- 追问: key_len 怎么算出联合索引实际用了几列?；a=1 and b>2 and c=3 里 c 完全没用吗,MySQL 有没有办法在索引层过滤它?；把联合索引顺序改成 (b,a,c) 原来的查询还能命中吗?\n- 评分标尺: 及格=答到索引按列顺序排序、必须从最左列开始;良好=讲清 range 之后列失效 …(700 字符)",
+        "summary": null
+       }
+      ],
+      "tool_text": "{\"query\":\"帮我从数据库方向开始模拟一面，先问一道中级题\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":170,\"embed_ms\":5,\"results\":[{\"id\":\"0c760d2a-8804-43e4-8c3a-ce9c9e95f95a\",\"text\":\"Q: 候选人明显在背题，我该怎么确认他是真理解？ - 领域: 项目 - 难度: 高级 - 考察点: 面试官有没有可复现的验证动作，而不是凭语感判定 - 参考答案要点: 换措辞，如\\\"原样问 MVCC 定义答得流利，就改问一条 UPDATE 里哪个环节用到它\\\"；改前提，如\\\"把熟悉题目里的一个参数换掉，看结论是否跟着变\\\"；要落地，如\\\"你项目哪一处用到它、数据量多大\\\"；反着问，如\\\"把这个机制去掉会出什么问题\\\"；识别信号，如\\\"语速均匀无停顿、全程没有一个具体名词\\\"；两三个手段组合即可判定，不当面对质 - 追问: 如果他其实是真理解只是表达机械，你怎么区分？；确认是背题之后，这一轮的分数怎么记？；你能不能现场出一道背不下来、只有理解才答得上的题？ - 评分标尺: 及格=会换问法而不是重复原问；良好=用改前提加要落地交叉验证；优秀=分开记录背来的知识和自己的经验 - 常见误区: 认定背题就把整题打零，忽略知识本身正确；追问到对方说不出话，变成羞辱；只写\\\"感觉是在背\\\"，没有验证…(2983 字符)"
+     }
+    },
+    {
+     "title": "面试官",
+     "type": "llm",
+     "status": "succeeded",
+     "elapsed_time": 3.184826,
+     "error": null,
+     "model": {
+      "provider": "langgenius/deepseek/deepseek",
+      "name": "deepseek-flash",
+      "usage": {
+       "prompt_tokens": 4244,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 336,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 4580,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 3.177,
+       "time_to_first_token": 0.679,
+       "time_to_generate": 2.498
+      }
+     },
+     "outputs": {
+      "text": "这道题来自知识库检索通道，属于数据库方向中级题库，覆盖联合索引的排序规则与优化器行为；工具检索通道这轮返回的是行为面和项目面素材，没有补到数据库题，因此以知识库这条为准。\n\n题面：某张表上建了联合索引 `(a, b, c)`。现在有三个查询：`where a=1 and b=2 and c=3`、`where b=2`、`where a=1 and b>2 and c=3`。请逐条判断能不能用上这个索引、实际用到哪几列，并解释背后的原因；再说明你会怎样在 EXPLAIN 里验证自己的判断。回答时请先给三条结论，再展开机制，不要只讲“能”或“不能”。",
+      "reasoning_content": "<!--dify-deepseek-reasoning-->用户要求数据库方向、中级题。知识库检索里有一条数据库中级题：最左前缀原则。这条正好是数据库+中级。工具检索通道给的都是行为/项目/算法，没有数据库题——我应该说明素材主要来自知识库检索通道，工具检索通道没有补到数据库题。\n\n只出一个题，不判分，不问追问。两段：第一段说明来源和覆盖程度，第二段出题。\n\n可以带一点点引导?规则说每轮只做一件事：出1道题。那就出题。可以给出题面并要求答题要点方向？不能提前泄露答案。可以说明我会看什么（考察点），但不要给答案要点。稍微说一句\"先说结论再展开\"这种可以。\n\n不要写检索小结，不要写命中数量或毫秒数。",
+      "usage": {
+       "prompt_tokens": 4244,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 336,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 4580,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 3.177,
+       "time_to_first_token": 0.679,
+       "time_to_generate": 2.498
+      },
+      "finish_reason": "stop"
+     },
+     "inputs": {
+      "#sys.query#": "帮我从数据库方向开始模拟一面，先问一道中级题",
+      "#1000000000004.text#": "{\"query\":\"帮我从数据库方向开始模拟一面，先问一道中级题\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":170,\"embed_ms\":5,\"results\":[{\"id\":\"0c760d2a-8804-43e4-8c3a-ce9c9e95f95a\",\"text\":\"Q: 候选人明显在背题，我该怎么确认他是真理解？ - 领域: 项目 - 难度: 高级 - 考察点: 面试官有没有可复现的验证动作，而不是凭语感判定 - 参考答案要点: 换措辞，如\\\"原样问 MVCC 定义答得流利，就改问一条 UPDATE 里哪个环节用到它\\\"；改前提，如\\\"把熟悉题目里的一个参数换掉，看结论是否跟着变\\\"；要落地，如\\\"你项目哪一处用到它、数据量多大\\\"；反着问，如\\\"把这个机制去掉会出什么问题\\\"；识别信号，如\\\"语速均匀无停顿、全程没有一个具体名词\\\"；两三个手段组合即可判定，不当面对质 - 追问: 如果他其实是真理解只是表达机械，你怎么区分？；确认是背题之后，这一轮的分数怎么记？；你能不能现场出一道背不下来、只有理解才答得上的题？ - 评分标尺: 及格=会换问法而不是重复原问；良好=用改前提加要落地交叉验证；优秀=分开记录背来的知识和自己的经验 - 常见误区: 认定背题就把整题打零，忽略知识本身正确；追问到对方说不出话，变成羞辱；只写\\\"感觉是在背\\\"，没有验证…(2983 字符)",
+      "#context#": "Q: 从一面到终面，每一轮我应该重点确认什么？\n- 领域: 行为面\n- 难度: 高级\n- 考察点: 面试官对本轮产出和判据是否清楚，轮次之间不重复不越位\n- 参考答案要点: 一面守硬门槛，如\"计算机基础加手写代码，只给通过与不通过\"；二面验工程能力，如\"给一个真实场景做设计，看他会不会先问约束\"；三面做项目深挖，如\"逼到细节和数字，分辨是参与还是主导\"；HR 与终面看动机和稳定性，如\"选择理由、抗压表现、三年方向是否与岗位重合\"；每轮只解决一个不确定性，如\"别在基础轮问职业规划\"；轮次间传递信息，如\"前轮确认过的能力不再重复，写下待验证点\"\n- 追问: 一面放过了、二面挂了，你的评语哪一步出了问题？；两轮给分相差两档时你以谁为准，为什么？；校招和社招的轮次侧重点该有什么差别？\n- 评分标尺: 及格=说清每轮目标且互不重叠；良好=每轮有明确判据和产出物；优秀=主动设计轮次间信息传递，避免重复盘问\n- 常见误区: 每一轮都从自我介绍重新问一遍；把\"感觉不错\"写进评语；终面还在纠结语法细节\nQ: 候选人明显在背题，我该怎么确认他是真理解？\n- 领域: 项目\n- 难度: 高级\n- 考察点: 面试官有没有可复现的验证动作，而不是凭语感判定\n- 参考答案要点: 换措辞，如\"原样问 MVCC 定义答得流利，就改问一条 UPDATE 里哪个环节用到它\"；改前提，如\"把熟悉题目里的一个参数换掉，看结…(2740 字符)",
+      "model_provider": "langgenius/deepseek/deepseek",
+      "model_name": "deepseek-flash"
+     }
+    },
+    {
+     "title": "回答",
+     "type": "answer",
+     "status": "succeeded",
+     "elapsed_time": 0.000087,
+     "error": null,
+     "outputs": {
+      "answer": "这道题来自知识库检索通道，属于数据库方向中级题库，覆盖联合索引的排序规则与优化器行为；工具检索通道这轮返回的是行为面和项目面素材，没有补到数据库题，因此以知识库这条为准。\n\n题面：某张表上建了联合索引 `(a, b, c)`。现在有三个查询：`where a=1 and b=2 and c=3`、`where b=2`、`where a=1 and b>2 and c=3`。请逐条判断能不能用上这个索引、实际用到哪几列，并解释背后的原因；再说明你会怎样在 EXPLAIN 里验证自己的判断。回答时请先给三条结论，再展开机制，不要只讲“能”或“不能”。\n\n检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=170 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+      "files": []
+     },
+     "inputs": {}
+    }
+   ],
+   "answer": "这道题来自知识库检索通道，属于数据库方向中级题库，覆盖联合索引的排序规则与优化器行为；工具检索通道这轮返回的是行为面和项目面素材，没有补到数据库题，因此以知识库这条为准。\n\n题面：某张表上建了联合索引 `(a, b, c)`。现在有三个查询：`where a=1 and b=2 and c=3`、`where b=2`、`where a=1 and b>2 and c=3`。请逐条判断能不能用上这个索引、实际用到哪几列，并解释背后的原因；再说明你会怎样在 EXPLAIN 里验证自己的判断。回答时请先给三条结论，再展开机制，不要只讲“能”或“不能”。\n\n检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=170 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+   "events": [
+    {
+     "event": "workflow_finished",
+     "status": "succeeded",
+     "error": null,
+     "elapsed_time": 3.5985783189998983
+    }
+   ],
+   "workflow_run_id": "21fc0664-2445-4ebf-b808-af89c854c792",
+   "message_end": {
+    "answer": "",
+    "metadata": {}
+   },
+   "summary": {
+    "知识库检索": {
+     "hits": 5,
+     "top_score": "15.253",
+     "titles": [
+      "11-面试流程与评分总则",
+      "11-面试流程与评分总则",
+      "06-系统设计与容量估算",
+      "06-系统设计与容量估算",
+      "01-数据库原理与InnoDB"
+     ],
+     "elapsed_time": 0.219431
+    },
+    "seekdb工具": {
+     "hits": 4,
+     "mode": "hybrid",
+     "took_ms": 170,
+     "embed_ms": 5,
+     "has_explain": false,
+     "top_channels": [
+      "fts:2,vec:5 rrf=0.03151",
+      "fts:1,vec:13 rrf=0.03009",
+      "fts:7,vec:6 rrf=0.03008",
+      "fts:8,vec:8 rrf=0.02941"
+     ],
+     "elapsed_time": 0.185714
+    },
+    "生效模式": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）",
+    "answer_length": 398
+   }
+  }
+ ]
+}

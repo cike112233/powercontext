@@ -4,3 +4,13 @@ dist/
 *.qoder.site
 .DS_Store
 qoder/tmp/
+
+# dify/ 本地自部署运行产物：模型权重（约 600MB）、日志、pid、临时文件不入库
+dify/tmp/
+dify/embedding/models/
+dify/embedding/node_modules/
+dify/retrieval/node_modules/
+*.log
+# 但插件离线包要保留（国内 marketplace 不可用时的复现路径）
+!dify/plugins/dist/
+!dify/plugins/dist/*.difypkg

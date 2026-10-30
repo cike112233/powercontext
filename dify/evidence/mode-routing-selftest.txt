@@ -1,0 +1,26 @@
+seekdb 面试陪练官 —— 「模式路由」代码节点回归（测的就是 DSL 里那段源码，不是副本）
+来源：dify\dsl\interview-coach.yml
+跑法：python3 dify/scripts/routing-selftest.py --save
+
+PASS      mode=vector  explain=false clean='TIME_WAIT 为什么要等 2MSL'              <= 纯向量：TIME_WAIT 为什么要等 2MSL
+     README 演示话术 1：开关写在句首
+PASS      mode=fts     explain=true  clean='如何用 EXPLAIN 判断走没走索引？'              <= 全文：如何用 EXPLAIN 判断走没走索引？
+     README 演示话术 2：句子里本来就带 EXPLAIN，同时算索取证据
+PASS      mode=hybrid  explain=true  clean='哪些写法会导致索引失效？'                      <= 证据：哪些写法会导致索引失效？
+     索取执行计划，且「证据：」不该进检索句子
+PASS      mode=hybrid  explain=true  clean='哪些写法会导致索引失效？给我看这轮的检索证据'            <= 哪些写法会导致索引失效？给我看这轮的检索证据
+     证据写在句尾同样生效，整句留作检索词
+PASS      mode=fts     explain=false clean='maxLifetime 和哪个服务端参数有关系'           <= 纯全文：maxLifetime 和哪个服务端参数有关系
+     强关键词的另一种写法
+PASS      mode=fts     explain=false clean='redo log 和 binlog 为什么要两阶段提交'       <= 关键词：redo log 和 binlog 为什么要两阶段提交
+     全文别名
+PASS      mode=hybrid  explain=false clean='向量数据库怎么选型'                         <= 向量数据库怎么选型
+     回归：弱关键词在句首但后面不是分隔符，不许误触发
+PASS      mode=hybrid  explain=false clean='全文索引和倒排的关系是什么'                     <= 全文索引和倒排的关系是什么
+     回归：同上，「全文索引」是题目内容不是开关
+PASS      mode=hybrid  explain=false clean='InnoDB 的 MVCC 是怎么保证一致性读的？'         <= InnoDB 的 MVCC 是怎么保证一致性读的？
+     默认混合
+PASS      mode=hybrid  explain=true  clean='explain 一下这条 SQL'                  <= explain 一下这条 SQL
+     英文开关也能识别，且不会被当噪声截掉
+
+结论：10 条话术全部符合预期（10 条）。开关只认句首；「向量数据库怎么选型」「全文索引和…」这类把关键词写在句子中间的问法一律保持混合检索，消融对照不会因为误触发而失真。

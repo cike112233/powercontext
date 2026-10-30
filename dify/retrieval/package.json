@@ -1,0 +1,13 @@
+{
+  "name": "dify-seekdb-retrieval-tool",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "seekdb 混合检索自定义工具服务：直接查 Dify 落在 seekdb 里的知识库向量表，手写 全文(ik)+向量(HNSW)+RRF 融合，支持 hybrid/vector/fts 消融与 EXPLAIN 证据。供 Dify 以 OpenAPI 自定义工具接入。",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "mysql2": "^3.11.5"
+  }
+}

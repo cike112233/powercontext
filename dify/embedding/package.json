@@ -1,0 +1,13 @@
+{
+  "name": "dify-seekdb-embedding",
+  "private": true,
+  "type": "module",
+  "description": "本地 OpenAI 兼容 embedding 服务（bge-small-zh-v1.5，端侧同款模型），供 Dify 知识库向量化与 seekdb 混合检索工具复用",
+  "scripts": {
+    "fetch:model": "node scripts/fetch-model.mjs",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.2"
+  }
+}

@@ -1,0 +1,958 @@
+{
+ "started_at": "2026-10-30T01:58:44.651Z",
+ "base": "http://localhost",
+ "turns": [
+  {
+   "turn": 1,
+   "query": "InnoDB 的 MVCC 是怎么保证一致性读的？",
+   "nodes": [
+    {
+     "title": "开始",
+     "type": "start",
+     "status": "succeeded",
+     "elapsed_time": 0.000084,
+     "error": null,
+     "outputs": {},
+     "inputs": {}
+    },
+    {
+     "title": "模式路由",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.050426,
+     "error": null,
+     "outputs": {
+      "clean_query": "InnoDB 的 MVCC 是怎么保证一致性读的？",
+      "explain": "false",
+      "mode": "hybrid",
+      "mode_label": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）"
+     },
+     "inputs": {
+      "text": "InnoDB 的 MVCC 是怎么保证一致性读的？"
+     }
+    },
+    {
+     "title": "seekdb 混合检索工具（可消融）",
+     "type": "tool",
+     "status": "succeeded",
+     "elapsed_time": 0.060602,
+     "error": null,
+     "outputs": {
+      "text": "{\"query\":\"InnoDB 的 MVCC 是怎么保证一致性读的？\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":38,\"embed_ms\":5,\"results\":[{\"id\":\"d95faeb3-fb55-45ee-a3fa-f60800c95608\",\"text\":\"Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档? - 领域: 数据库 - 难度: 中级 - 考察点: 概念与异常术语能否精确对上 - 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\\\"快照读+当前读\\\"组合,并非完全无幻读,快照读与当前读混用会出现\\\"自己刚插入的行看不见/看得见\\\"的观感不一致 - 追问: 脏读、不可重复读、幻读的边界例子…(3224 字符)",
+      "files": [],
+      "json": [
+       {
+        "query": "InnoDB 的 MVCC 是怎么保证一致性读的？",
+        "mode": "hybrid",
+        "limit": 4,
+        "took_ms": 38,
+        "embed_ms": 5,
+        "results": [
+         {
+          "id": "d95faeb3-fb55-45ee-a3fa-f60800c95608",
+          "text": "Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档? - 领域: 数据库 - 难度: 中级 - 考察点: 概念与异常术语能否精确对上 - 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\"快照读+当前读\"组合,并非完全无幻读,快照读与当前读混用会出现\"自己刚插入的行看不见/看得见\"的观感不一致 - 追问: 脏读、不可重复读、幻读的边界例子各给一个?；为什么 InnoDB 选 RR 而不是 RC 作为默认,主从复制上有什么考虑?；线上把隔离级别调成 RC 会影响什么? - 评分标尺: 及格=四档与三种异常对应正确;良好=说清 ReadView 生成时机在 RC/RR 的差异;优秀=能解释 RR 下仍可能幻读的场景和 binlog 格式与 RC 的关…(636 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.032,
+          "fts_score": 10.284235,
+          "vec_distance": 0.84157,
+          "channels": "fts:3,vec:2"
+         },
+         {
+          "id": "1dc05f57-043c-4e90-9431-9973530c143a",
+          "text": "Q: ACID 四个特性分别靠 InnoDB 的什么机制保证? - 领域: 数据库 - 难度: 中级 - 考察点: 事务底层的机制对应关系,常作为项目题的开场 - 参考答案要点: A 原子性靠 undo log,事务回滚时按 undo 版本链反向补偿,崩溃恢复时未提交事务由 undo 回滚;持久性靠 redo log,WAL 先写日志再刷页,提交时按 innodb_flush_log_at_trx_commit 决定刷盘强度(1=每次提交 fsync,最安全;2=写 page cache 每秒 fsync;0=每秒写盘,宕机可能丢 1 秒);I 隔离性靠 MVCC 读视图加锁规则(行锁/间隙锁)读写分离;D 由 redo+undo 保证已提交数据不丢、未提交数据不残留,再由 doublewrite 保证页本身不因 16KB>原子写单位而撕裂,崩溃后先用 doublewrite 副本修复坏页再重放 redo;需要明确 redo 是物理日志、幂等重放,undo 是逻辑日志、可回滚可构造快照 - 追问: innodb_flush_log_at_trx_commit 设成 2 在什么场景下会丢数据?；为什么需要 doublewrite,关掉它有性能收益但风险在哪?；redo log 写满时会发生什么? - 评分标尺: 及格=四条特性能对上 undo/redo/MVCC;良好=讲清三种刷盘档…(741 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.03132,
+          "fts_score": 11.927709,
+          "vec_distance": 0.902576,
+          "channels": "fts:1,vec:7"
+         },
+         {
+          "id": "a591352c-1737-486c-8127-b88a0fdc44b3",
+          "text": "Q: 都说强一致性代价高，具体高在哪？能给点数字吗？ - 领域: 分布式 - 难度: 高级 - 考察点: 能否把代价量化到延迟、吞吐、可用性三个维度 - 参考答案要点: 写要多数派确认，延迟从单机亚毫秒变成至少一个 RTT（同机房 0.5–2ms，跨城 30ms RTT 下 etcd 写入掉到数千 TPS）；吞吐受 leader 串行化日志限制，3 副本需 2 ack、写放大≥1.5x；ZK/etcd 3 副本挂 2 个整体拒写，可用性主动让位；线性一致读要 ReadIndex/lease 再确认多数派，读不再免费；网络抖动还放大选举震荡 - 追问: 为什么 Raft 只允许 leader 写，follower 读为什么会读到旧值？；lease read 靠什么保证安全，时钟漂移多大就破 - 评分标尺: 及格=说出多数派慢、leader 瓶颈；良好=给 RTT/TPS/写放大量级；优秀=区分写读可用性三类代价并给缓解手段 - 常见误区: 只说慢不讲哪一步慢；认为线性一致读和本地读一样免费 ## 共识算法",
+          "document_id": "129abf0c-1c36-49fa-a953-76420d8c1835",
+          "rrf": 0.03132,
+          "fts_score": 6.782471,
+          "vec_distance": 0.81882,
+          "channels": "fts:7,vec:1"
+         },
+         {
+          "id": "d64aa3a0-5443-43b5-b936-935fa6b280e0",
+          "text": "Q: CAP 和 BASE 分别讲什么？分区发生了系统该怎么选？ - 领域: 分布式 - 难度: 中级 - 考察点: 是否理解只有 P 发生时才被迫二选一，且取舍按数据项而非按系统整体 - 参考答案要点: P 无法避免，发生时 C 与 A 二选一，且按每类数据取舍：余额扣减选 CP、商品详情选 AP；BASE=Basically Available（分区期允许降级返缓存或排队写）+Soft state（副本允许短暂不一致）+Eventual consistency（有限时间内重试/对账收敛）；CP 代表 ZooKeeper/etcd（少数派存活即拒写），AP 代表 Cassandra（R+W>N 得强读）；BASE 是把强一致移出同步路径、用对账兜底，\"最终\"没有时间上界 - 追问: 既然最终一致能收敛，为什么账本还要上 Raft 强一致？；R+W>N 为什么能保证读到最新写，举例说明 - 评分标尺: 及格=答出 P 发生才谈取舍；良好=能按数据项区分并举真实系统；优秀=能指出无分区时 C/A 可兼得、BASE 必须配对账监控 - 常见误区: 说成 CAP 三选二整体选边；把 BASE 理解成不要一致性",
+          "document_id": "129abf0c-1c36-49fa-a953-76420d8c1835",
+          "rrf": 0.03016,
+          "fts_score": 5.950032,
+          "vec_distance": 0.869489,
+          "channels": "fts:10,vec:3"
+         }
+        ]
+       }
+      ]
+     },
+     "inputs": {
+      "explain": "false",
+      "mode": "hybrid",
+      "query": "InnoDB 的 MVCC 是怎么保证一致性读的？",
+      "top_k": "4"
+     }
+    },
+    {
+     "title": "知识库检索（seekdb 原生混合）",
+     "type": "knowledge-retrieval",
+     "status": "succeeded",
+     "elapsed_time": 0.195032,
+     "error": null,
+     "outputs": {
+      "result": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "5e630982-ad0a-4fb4-86c1-e32b892b41ec",
+         "retriever_from": "workflow",
+         "score": 11.927709105601025,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 741,
+         "segment_position": 7,
+         "segment_index_node_hash": "0123ad508e21a7bd3fc1a160392b21573983a8c887883c9cfbf6009508dd95c9",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: ACID 四个特性分别靠 InnoDB 的什么机制保证?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 事务底层的机制对应关系,常作为项目题的开场\n- 参考答案要点: A 原子性靠 undo log,事务回滚时按 undo 版本链反向补偿,崩溃恢复时未提交事务由 undo 回滚;持久性靠 redo log,WAL 先写日志再刷页,提交时按 innodb_flush_log_at_trx_commit 决定刷盘强度(1=每次提交 fsync,最安全;2=写 page cache 每秒 fsync;0=每秒写盘,宕机可能丢 1 秒);I 隔离性靠 MVCC 读视图加锁规则(行锁/间隙锁)读写分离;D 由 redo+undo 保证已提交数据不丢、未提交数据不残留,再由 doublewrite 保证页本身不因 16KB>原子写单位而撕裂,崩溃后先用 doublewrite 副本修复坏页再重放 redo;需要明确 redo 是物理日志、幂等重放,undo 是逻辑日志、可回滚可构造快照\n- 追问: innodb_flush_log_at_trx_commit 设成 2 在什么场景下会丢数据?；为什么需要 doublewrite,关掉它有性能收益但风险在哪?；redo log 写满时会发生什么?\n- 评分标尺: 及格=四条特性能对上 undo/redo/MVCC;良好=讲清三种刷盘档…(741 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "75f0bdef-b967-4634-b190-021d87536d35",
+         "retriever_from": "workflow",
+         "score": 11.413803498473126,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 796,
+         "segment_position": 12,
+         "segment_index_node_hash": "10371d1e838bad181ee71d7cb51e281b079fdfbdb07c78e4f887be921df724a0",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: redo log、undo log、binlog 有什么区别,为什么要两阶段提交?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 日志体系与崩溃恢复一致性,高频深挖题\n- 参考答案要点: redo log 是 InnoDB 引擎层的物理日志、循环写入 ib_logfile(8.0.30 起默认 innodb_log_file_size 48MB×2),只保证已提交事务的页修改可重放;undo log 是逻辑日志,用于回滚与 MVCC 版本链;binlog 是 server 层的归档逻辑日志、追加写、记录语句或行变更,用于主从复制与时间点恢复;两阶段提交:redo 先写 prepare 并落盘→写 binlog 并落盘→redo 提交,任何点崩溃都能判定:redo 有 prepare 且 binlog 完整则提交,binlog 缺失则回滚;目的不是让日志\"写两遍\",而是保证 redo(内部一致性)与 binlog(外部备份/复制)不出现\"备份库多/少一条变更\"的不一致;若先写 binlog 再提交 redo,崩溃后主库回滚而从库已应用,数据分叉\n- 追问: 为什么不能先写完 redo 提交再写 binlog?；组提交(group commit)是怎么在安全性不变的前提下提高吞吐的?；sync_binlog=1 和 innodb_flush_log_at_trx_commi…(796 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "0646826c-0814-4281-b982-40f67f8f00bc",
+         "retriever_from": "workflow",
+         "score": 10.284234861374665,
+         "child_chunks": [],
+         "segment_hit_count": 10,
+         "segment_word_count": 636,
+         "segment_position": 8,
+         "segment_index_node_hash": "cd0f08ed08b8e4fbba6914a4dde8073193129673755c9b5a82c84dda6233ee0e",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 概念与异常术语能否精确对上\n- 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\"快照读+当前读\"组合,并非完全无幻读,快照读与当前读混用会出现\"自己刚插入的行看不见/看得见\"的观感不一致\n- 追问: 脏读、不可重复读、幻读的边界例子各给一个?；为什么 InnoDB 选 RR 而不是 RC 作为默认,主从复制上有什么考虑?；线上把隔离级别调成 RC 会影响什么?\n- 评分标尺: 及格=四档与三种异常对应正确;良好=说清 ReadView 生成时机在 RC/RR 的差异;优秀=能解释 RR 下仍可能幻读的场景和 binlog 格式与 RC 的关…(636 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "1ca69262-391c-473c-927c-75a10c1e3bfe",
+         "document_name": "02-SQL实战与优化",
+         "data_source_type": "upload_file",
+         "segment_id": "27836841-8fb6-471d-89b3-a9ad0dfb096a",
+         "retriever_from": "workflow",
+         "score": 10.258351626054894,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 702,
+         "segment_position": 13,
+         "segment_index_node_hash": "9116c5bb8db0d50a8b40f84ef41c511d603a116c1b923b4c5d1f72488f9ff2d7",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "02-SQL实战与优化",
+        "files": null,
+        "content": "Q: 分页接口既要返回总数又要返回列表,`select count(*)` 每次很慢,你有什么办法?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 工程权衡,是否知道用近似值与缓存换性能\n- 参考答案要点: 先量化:count(*) 在 InnoDB 需扫最小可用索引统计可见行,亿级表上就是几十万次页读,不能靠缓存精确值;方案一 sql_calc_found_rows + select found_rows() 让同一次查询带回总数,但它仍需扫描全量匹配行,只省一次往返不省时间;方案二按查询条件维度做计数缓存(Redis/计数表,TTL 60 秒,业务能接受最终一致),配合\"只展示总数到某档位如 1000+\";方案三前端改游标翻页、去掉总数;方案四近似统计:explain 里的 rows 或 information_schema.tables 的 table_rows(误差按采样,约 10% 量级)取整展示;方案五把 count 与数据查询拆异步,count 走只读从库或走 ES 聚合\n- 追问: sql_calc_found_rows 有什么隐藏代价?；为什么 InnoDB 不缓存 count(*)?；table_rows 的误差从哪来?\n- 评分标尺: 及格=知道 count 慢的根本原因;良好=给出缓存/游标/异步三类方案与一致性代价;优秀=能解释 MVCC 可见性使精…(702 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "b0d537d3-a84f-4b53-bfee-6a51e6511913",
+         "retriever_from": "workflow",
+         "score": 7.39600521153426,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 826,
+         "segment_position": 9,
+         "segment_index_node_hash": "4e23368f8d74a9bf7fe915597daac36e1ef1b66239fd2e1d17b2f958e6febddc",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 并发控制核心机制,区分背题与读懂源码\n- 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本重新判断,直到找到可见版本或链尽头;RC 每条 select 语句生成新 ReadView,RR 只在事务第一次快照读生成并复用;update/delete/select for update 是当前读,读最新版本并加锁\n- 追问: 为什么 RR 下 A 事务改了自己看不到的行不会冲突,当前读和快照读看到不同版本怎么解释?；undo 版本链太长会怎样,purge 线程和 long transaction 有什么关系?；ReadVi…(826 字符)",
+        "summary": null
+       }
+      ]
+     },
+     "inputs": {
+      "query": "InnoDB 的 MVCC 是怎么保证一致性读的？"
+     }
+    },
+    {
+     "title": "检索小结（确定性）",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.055285,
+     "error": null,
+     "outputs": {
+      "summary": "检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=38 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20"
+     },
+     "inputs": {
+      "mode": "hybrid",
+      "kr": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "5e630982-ad0a-4fb4-86c1-e32b892b41ec",
+         "retriever_from": "workflow",
+         "score": 11.927709105601025,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 741,
+         "segment_position": 7,
+         "segment_index_node_hash": "0123ad508e21a7bd3fc1a160392b21573983a8c887883c9cfbf6009508dd95c9",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: ACID 四个特性分别靠 InnoDB 的什么机制保证?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 事务底层的机制对应关系,常作为项目题的开场\n- 参考答案要点: A 原子性靠 undo log,事务回滚时按 undo 版本链反向补偿,崩溃恢复时未提交事务由 undo 回滚;持久性靠 redo log,WAL 先写日志再刷页,提交时按 innodb_flush_log_at_trx_commit 决定刷盘强度(1=每次提交 fsync,最安全;2=写 page cache 每秒 fsync;0=每秒写盘,宕机可能丢 1 秒);I 隔离性靠 MVCC 读视图加锁规则(行锁/间隙锁)读写分离;D 由 redo+undo 保证已提交数据不丢、未提交数据不残留,再由 doublewrite 保证页本身不因 16KB>原子写单位而撕裂,崩溃后先用 doublewrite 副本修复坏页再重放 redo;需要明确 redo 是物理日志、幂等重放,undo 是逻辑日志、可回滚可构造快照\n- 追问: innodb_flush_log_at_trx_commit 设成 2 在什么场景下会丢数据?；为什么需要 doublewrite,关掉它有性能收益但风险在哪?；redo log 写满时会发生什么?\n- 评分标尺: 及格=四条特性能对上 undo/redo/MVCC;良好=讲清三种刷盘档…(741 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "75f0bdef-b967-4634-b190-021d87536d35",
+         "retriever_from": "workflow",
+         "score": 11.413803498473126,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 796,
+         "segment_position": 12,
+         "segment_index_node_hash": "10371d1e838bad181ee71d7cb51e281b079fdfbdb07c78e4f887be921df724a0",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: redo log、undo log、binlog 有什么区别,为什么要两阶段提交?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 日志体系与崩溃恢复一致性,高频深挖题\n- 参考答案要点: redo log 是 InnoDB 引擎层的物理日志、循环写入 ib_logfile(8.0.30 起默认 innodb_log_file_size 48MB×2),只保证已提交事务的页修改可重放;undo log 是逻辑日志,用于回滚与 MVCC 版本链;binlog 是 server 层的归档逻辑日志、追加写、记录语句或行变更,用于主从复制与时间点恢复;两阶段提交:redo 先写 prepare 并落盘→写 binlog 并落盘→redo 提交,任何点崩溃都能判定:redo 有 prepare 且 binlog 完整则提交,binlog 缺失则回滚;目的不是让日志\"写两遍\",而是保证 redo(内部一致性)与 binlog(外部备份/复制)不出现\"备份库多/少一条变更\"的不一致;若先写 binlog 再提交 redo,崩溃后主库回滚而从库已应用,数据分叉\n- 追问: 为什么不能先写完 redo 提交再写 binlog?；组提交(group commit)是怎么在安全性不变的前提下提高吞吐的?；sync_binlog=1 和 innodb_flush_log_at_trx_commi…(796 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "0646826c-0814-4281-b982-40f67f8f00bc",
+         "retriever_from": "workflow",
+         "score": 10.284234861374665,
+         "child_chunks": [],
+         "segment_hit_count": 10,
+         "segment_word_count": 636,
+         "segment_position": 8,
+         "segment_index_node_hash": "cd0f08ed08b8e4fbba6914a4dde8073193129673755c9b5a82c84dda6233ee0e",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 概念与异常术语能否精确对上\n- 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\"快照读+当前读\"组合,并非完全无幻读,快照读与当前读混用会出现\"自己刚插入的行看不见/看得见\"的观感不一致\n- 追问: 脏读、不可重复读、幻读的边界例子各给一个?；为什么 InnoDB 选 RR 而不是 RC 作为默认,主从复制上有什么考虑?；线上把隔离级别调成 RC 会影响什么?\n- 评分标尺: 及格=四档与三种异常对应正确;良好=说清 ReadView 生成时机在 RC/RR 的差异;优秀=能解释 RR 下仍可能幻读的场景和 binlog 格式与 RC 的关…(636 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "1ca69262-391c-473c-927c-75a10c1e3bfe",
+         "document_name": "02-SQL实战与优化",
+         "data_source_type": "upload_file",
+         "segment_id": "27836841-8fb6-471d-89b3-a9ad0dfb096a",
+         "retriever_from": "workflow",
+         "score": 10.258351626054894,
+         "child_chunks": [],
+         "segment_hit_count": 4,
+         "segment_word_count": 702,
+         "segment_position": 13,
+         "segment_index_node_hash": "9116c5bb8db0d50a8b40f84ef41c511d603a116c1b923b4c5d1f72488f9ff2d7",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "02-SQL实战与优化",
+        "files": null,
+        "content": "Q: 分页接口既要返回总数又要返回列表,`select count(*)` 每次很慢,你有什么办法?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 工程权衡,是否知道用近似值与缓存换性能\n- 参考答案要点: 先量化:count(*) 在 InnoDB 需扫最小可用索引统计可见行,亿级表上就是几十万次页读,不能靠缓存精确值;方案一 sql_calc_found_rows + select found_rows() 让同一次查询带回总数,但它仍需扫描全量匹配行,只省一次往返不省时间;方案二按查询条件维度做计数缓存(Redis/计数表,TTL 60 秒,业务能接受最终一致),配合\"只展示总数到某档位如 1000+\";方案三前端改游标翻页、去掉总数;方案四近似统计:explain 里的 rows 或 information_schema.tables 的 table_rows(误差按采样,约 10% 量级)取整展示;方案五把 count 与数据查询拆异步,count 走只读从库或走 ES 聚合\n- 追问: sql_calc_found_rows 有什么隐藏代价?；为什么 InnoDB 不缓存 count(*)?；table_rows 的误差从哪来?\n- 评分标尺: 及格=知道 count 慢的根本原因;良好=给出缓存/游标/异步三类方案与一致性代价;优秀=能解释 MVCC 可见性使精…(702 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "b0d537d3-a84f-4b53-bfee-6a51e6511913",
+         "retriever_from": "workflow",
+         "score": 7.39600521153426,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 826,
+         "segment_position": 9,
+         "segment_index_node_hash": "4e23368f8d74a9bf7fe915597daac36e1ef1b66239fd2e1d17b2f958e6febddc",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 并发控制核心机制,区分背题与读懂源码\n- 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本重新判断,直到找到可见版本或链尽头;RC 每条 select 语句生成新 ReadView,RR 只在事务第一次快照读生成并复用;update/delete/select for update 是当前读,读最新版本并加锁\n- 追问: 为什么 RR 下 A 事务改了自己看不到的行不会冲突,当前读和快照读看到不同版本怎么解释?；undo 版本链太长会怎样,purge 线程和 long transaction 有什么关系?；ReadVi…(826 字符)",
+        "summary": null
+       }
+      ],
+      "tool_text": "{\"query\":\"InnoDB 的 MVCC 是怎么保证一致性读的？\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":38,\"embed_ms\":5,\"results\":[{\"id\":\"d95faeb3-fb55-45ee-a3fa-f60800c95608\",\"text\":\"Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档? - 领域: 数据库 - 难度: 中级 - 考察点: 概念与异常术语能否精确对上 - 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\\\"快照读+当前读\\\"组合,并非完全无幻读,快照读与当前读混用会出现\\\"自己刚插入的行看不见/看得见\\\"的观感不一致 - 追问: 脏读、不可重复读、幻读的边界例子…(3224 字符)"
+     }
+    },
+    {
+     "title": "面试官",
+     "type": "llm",
+     "status": "succeeded",
+     "elapsed_time": 4.019532,
+     "error": null,
+     "model": {
+      "provider": "langgenius/deepseek/deepseek",
+      "name": "deepseek-flash",
+      "usage": {
+       "prompt_tokens": 4580,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 468,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 5048,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 4.009,
+       "time_to_first_token": 0.864,
+       "time_to_generate": 3.145
+      }
+     },
+     "outputs": {
+      "text": "本轮素材来自「知识库检索」通道，命中一道「讲讲 MVCC 的实现，undo 版本链和 ReadView 怎么配合」的高级题，覆盖到隐藏列、版本链、ReadView 四字段与可见性判定顺序；「seekdb 工具检索」通道返回的是隔离级别与 ACID 两条中级素材，只覆盖 ReadView 在 RC/RR 下的生成时机差异，没有版本链字段级细节，两通道不一致处以知识库那条为准。\n\n题目（高级）：假设有一张 `account` 表，某行余额被事务 A 从 100 改成 200 并已提交，随后事务 B 把它改成 300 但还没提交，此时事务 C 发起一次普通 `select balance`。请你讲清楚：这一行上的版本是怎么串起来的，C 手里那个 ReadView 有哪几个字段，然后按判定顺序说明 C 为什么看到的是 200 而不是 300、也不是 100。",
+      "reasoning_content": "<!--dify-deepseek-reasoning-->候选人问的是一道题，但规则2说每轮只做一件事：出1道题→等回答→判分。这里候选人自己提出了问题（作为求职面试陪练，候选人是在问？）实际上\"候选人本轮说：InnoDB 的 MVCC 是怎么保证一致性读的？\"——这看起来候选人提出的是问题，但按规则，我应该出题。这里最贴合的是「讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合」这条素材，难度高级。\n\n按格式：第一段说明素材来自哪条通道、覆盖到什么程度；第二段出这道题。注意不能一次把追问全抛出来。\n\n候选人的句子没有检索前缀开关（虽然正文里有\"全文：\"？没有）。实际用户消息中有一句\"InnoDB 的 MVCC 是怎么保证一致性读的？\"这是本轮内容。\n\n输出：两段以内。第一段：素材来自知识库检索通道（Dify 原生混合检索）命中的 MVCC 高级题，seekdb 工具检索补充到的是隔离级别/ACID 两条，未覆盖 undo 版本链细节，说明差异通道。第二段：出题。\n\n要注意不要转述命中数量或毫秒数。\n\n写吧。",
+      "usage": {
+       "prompt_tokens": 4580,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 468,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 5048,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 4.009,
+       "time_to_first_token": 0.864,
+       "time_to_generate": 3.145
+      },
+      "finish_reason": "stop"
+     },
+     "inputs": {
+      "#sys.query#": "InnoDB 的 MVCC 是怎么保证一致性读的？",
+      "#1000000000004.text#": "{\"query\":\"InnoDB 的 MVCC 是怎么保证一致性读的？\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":38,\"embed_ms\":5,\"results\":[{\"id\":\"d95faeb3-fb55-45ee-a3fa-f60800c95608\",\"text\":\"Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档? - 领域: 数据库 - 难度: 中级 - 考察点: 概念与异常术语能否精确对上 - 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\\\"快照读+当前读\\\"组合,并非完全无幻读,快照读与当前读混用会出现\\\"自己刚插入的行看不见/看得见\\\"的观感不一致 - 追问: 脏读、不可重复读、幻读的边界例子…(3224 字符)",
+      "#context#": "Q: ACID 四个特性分别靠 InnoDB 的什么机制保证?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 事务底层的机制对应关系,常作为项目题的开场\n- 参考答案要点: A 原子性靠 undo log,事务回滚时按 undo 版本链反向补偿,崩溃恢复时未提交事务由 undo 回滚;持久性靠 redo log,WAL 先写日志再刷页,提交时按 innodb_flush_log_at_trx_commit 决定刷盘强度(1=每次提交 fsync,最安全;2=写 page cache 每秒 fsync;0=每秒写盘,宕机可能丢 1 秒);I 隔离性靠 MVCC 读视图加锁规则(行锁/间隙锁)读写分离;D 由 redo+undo 保证已提交数据不丢、未提交数据不残留,再由 doublewrite 保证页本身不因 16KB>原子写单位而撕裂,崩溃后先用 doublewrite 副本修复坏页再重放 redo;需要明确 redo 是物理日志、幂等重放,undo 是逻辑日志、可回滚可构造快照\n- 追问: innodb_flush_log_at_trx_commit 设成 2 在什么场景下会丢数据?；为什么需要 doublewrite,关掉它有性能收益但风险在哪?；redo log 写满时会发生什么?\n- 评分标尺: 及格=四条特性能对上 undo/redo/MVCC;良好=讲清三种刷盘档…(3705 字符)",
+      "model_provider": "langgenius/deepseek/deepseek",
+      "model_name": "deepseek-flash"
+     }
+    },
+    {
+     "title": "回答",
+     "type": "answer",
+     "status": "succeeded",
+     "elapsed_time": 0.000095,
+     "error": null,
+     "outputs": {
+      "answer": "本轮素材来自「知识库检索」通道，命中一道「讲讲 MVCC 的实现，undo 版本链和 ReadView 怎么配合」的高级题，覆盖到隐藏列、版本链、ReadView 四字段与可见性判定顺序；「seekdb 工具检索」通道返回的是隔离级别与 ACID 两条中级素材，只覆盖 ReadView 在 RC/RR 下的生成时机差异，没有版本链字段级细节，两通道不一致处以知识库那条为准。\n\n题目（高级）：假设有一张 `account` 表，某行余额被事务 A 从 100 改成 200 并已提交，随后事务 B 把它改成 300 但还没提交，此时事务 C 发起一次普通 `select balance`。请你讲清楚：这一行上的版本是怎么串起来的，C 手里那个 ReadView 有哪几个字段，然后按判定顺序说明 C 为什么看到的是 200 而不是 300、也不是 100。\n\n检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=38 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+      "files": []
+     },
+     "inputs": {}
+    }
+   ],
+   "answer": "本轮素材来自「知识库检索」通道，命中一道「讲讲 MVCC 的实现，undo 版本链和 ReadView 怎么配合」的高级题，覆盖到隐藏列、版本链、ReadView 四字段与可见性判定顺序；「seekdb 工具检索」通道返回的是隔离级别与 ACID 两条中级素材，只覆盖 ReadView 在 RC/RR 下的生成时机差异，没有版本链字段级细节，两通道不一致处以知识库那条为准。\n\n题目（高级）：假设有一张 `account` 表，某行余额被事务 A 从 100 改成 200 并已提交，随后事务 B 把它改成 300 但还没提交，此时事务 C 发起一次普通 `select balance`。请你讲清楚：这一行上的版本是怎么串起来的，C 手里那个 ReadView 有哪几个字段，然后按判定顺序说明 C 为什么看到的是 200 而不是 300、也不是 100。\n\n检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=38 ms（其中 query embedding 5 ms）｜融合=RRF K=60 recall=20",
+   "events": [
+    {
+     "event": "workflow_finished",
+     "status": "succeeded",
+     "error": null,
+     "elapsed_time": 4.42319197300003
+    }
+   ],
+   "workflow_run_id": "a5d4f5e3-f465-4bcd-a328-40a5e60dd897",
+   "message_end": {
+    "answer": "",
+    "metadata": {}
+   },
+   "summary": {
+    "知识库检索": {
+     "hits": 5,
+     "top_score": "11.928",
+     "titles": [
+      "01-数据库原理与InnoDB",
+      "01-数据库原理与InnoDB",
+      "01-数据库原理与InnoDB",
+      "02-SQL实战与优化",
+      "01-数据库原理与InnoDB"
+     ],
+     "elapsed_time": 0.195032
+    },
+    "seekdb工具": {
+     "hits": 4,
+     "mode": "hybrid",
+     "took_ms": 38,
+     "embed_ms": 5,
+     "has_explain": false,
+     "top_channels": [
+      "fts:3,vec:2 rrf=0.032",
+      "fts:1,vec:7 rrf=0.03132",
+      "fts:7,vec:1 rrf=0.03132",
+      "fts:10,vec:3 rrf=0.03016"
+     ],
+     "elapsed_time": 0.060602
+    },
+    "生效模式": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）",
+    "answer_length": 500
+   }
+  },
+  {
+   "turn": 2,
+   "query": "我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。",
+   "nodes": [
+    {
+     "title": "开始",
+     "type": "start",
+     "status": "succeeded",
+     "elapsed_time": 0.000077,
+     "error": null,
+     "outputs": {},
+     "inputs": {}
+    },
+    {
+     "title": "模式路由",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.048758,
+     "error": null,
+     "outputs": {
+      "clean_query": "我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。",
+      "explain": "false",
+      "mode": "hybrid",
+      "mode_label": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）"
+     },
+     "inputs": {
+      "text": "我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。"
+     }
+    },
+    {
+     "title": "seekdb 混合检索工具（可消融）",
+     "type": "tool",
+     "status": "succeeded",
+     "elapsed_time": 0.033552,
+     "error": null,
+     "outputs": {
+      "text": "{\"query\":\"我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":14,\"embed_ms\":6,\"results\":[{\"id\":\"ed1bf3f5-c25d-4066-8df4-c89e5af56365\",\"text\":\"Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合? - 领域: 数据库 - 难度: 高级 - 考察点: 并发控制核心机制,区分背题与读懂源码 - 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本…(3950 字符)",
+      "files": [],
+      "json": [
+       {
+        "query": "我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。",
+        "mode": "hybrid",
+        "limit": 4,
+        "took_ms": 14,
+        "embed_ms": 6,
+        "results": [
+         {
+          "id": "ed1bf3f5-c25d-4066-8df4-c89e5af56365",
+          "text": "Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合? - 领域: 数据库 - 难度: 高级 - 考察点: 并发控制核心机制,区分背题与读懂源码 - 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本重新判断,直到找到可见版本或链尽头;RC 每条 select 语句生成新 ReadView,RR 只在事务第一次快照读生成并复用;update/delete/select for update 是当前读,读最新版本并加锁 - 追问: 为什么 RR 下 A 事务改了自己看不到的行不会冲突,当前读和快照读看到不同版本怎么解释?；undo 版本链太长会怎样,purge 线程和 long transaction 有什么关系?；ReadVi…(825 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.03252,
+          "fts_score": 47.140841,
+          "vec_distance": 0.89057,
+          "channels": "fts:1,vec:2"
+         },
+         {
+          "id": "d95faeb3-fb55-45ee-a3fa-f60800c95608",
+          "text": "Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档? - 领域: 数据库 - 难度: 中级 - 考察点: 概念与异常术语能否精确对上 - 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\"快照读+当前读\"组合,并非完全无幻读,快照读与当前读混用会出现\"自己刚插入的行看不见/看得见\"的观感不一致 - 追问: 脏读、不可重复读、幻读的边界例子各给一个?；为什么 InnoDB 选 RR 而不是 RC 作为默认,主从复制上有什么考虑?；线上把隔离级别调成 RC 会影响什么? - 评分标尺: 及格=四档与三种异常对应正确;良好=说清 ReadView 生成时机在 RC/RR 的差异;优秀=能解释 RR 下仍可能幻读的场景和 binlog 格式与 RC 的关…(636 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.03252,
+          "fts_score": 33.465857,
+          "vec_distance": 0.876515,
+          "channels": "fts:2,vec:1"
+         },
+         {
+          "id": "1dc05f57-043c-4e90-9431-9973530c143a",
+          "text": "Q: ACID 四个特性分别靠 InnoDB 的什么机制保证? - 领域: 数据库 - 难度: 中级 - 考察点: 事务底层的机制对应关系,常作为项目题的开场 - 参考答案要点: A 原子性靠 undo log,事务回滚时按 undo 版本链反向补偿,崩溃恢复时未提交事务由 undo 回滚;持久性靠 redo log,WAL 先写日志再刷页,提交时按 innodb_flush_log_at_trx_commit 决定刷盘强度(1=每次提交 fsync,最安全;2=写 page cache 每秒 fsync;0=每秒写盘,宕机可能丢 1 秒);I 隔离性靠 MVCC 读视图加锁规则(行锁/间隙锁)读写分离;D 由 redo+undo 保证已提交数据不丢、未提交数据不残留,再由 doublewrite 保证页本身不因 16KB>原子写单位而撕裂,崩溃后先用 doublewrite 副本修复坏页再重放 redo;需要明确 redo 是物理日志、幂等重放,undo 是逻辑日志、可回滚可构造快照 - 追问: innodb_flush_log_at_trx_commit 设成 2 在什么场景下会丢数据?；为什么需要 doublewrite,关掉它有性能收益但风险在哪?；redo log 写满时会发生什么? - 评分标尺: 及格=四条特性能对上 undo/redo/MVCC;良好=讲清三种刷盘档…(741 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.02967,
+          "fts_score": 11.20898,
+          "vec_distance": 0.922134,
+          "channels": "fts:10,vec:5"
+         },
+         {
+          "id": "37c05c86-0c09-4e83-9ccb-8fb676828c2c",
+          "text": "Q: redo log、undo log、binlog 有什么区别,为什么要两阶段提交? - 领域: 数据库 - 难度: 高级 - 考察点: 日志体系与崩溃恢复一致性,高频深挖题 - 参考答案要点: redo log 是 InnoDB 引擎层的物理日志、循环写入 ib_logfile(8.0.30 起默认 innodb_log_file_size 48MB×2),只保证已提交事务的页修改可重放;undo log 是逻辑日志,用于回滚与 MVCC 版本链;binlog 是 server 层的归档逻辑日志、追加写、记录语句或行变更,用于主从复制与时间点恢复;两阶段提交:redo 先写 prepare 并落盘→写 binlog 并落盘→redo 提交,任何点崩溃都能判定:redo 有 prepare 且 binlog 完整则提交,binlog 缺失则回滚;目的不是让日志\"写两遍\",而是保证 redo(内部一致性)与 binlog(外部备份/复制)不出现\"备份库多/少一条变更\"的不一致;若先写 binlog 再提交 redo,崩溃后主库回滚而从库已应用,数据分叉 - 追问: 为什么不能先写完 redo 提交再写 binlog?；组提交(group commit)是怎么在安全性不变的前提下提高吞吐的?；sync_binlog=1 和 innodb_flush_log_at_trx_commi…(795 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.02932,
+          "fts_score": 10.604555,
+          "vec_distance": 0.912477,
+          "channels": "fts:13,vec:4"
+         }
+        ]
+       }
+      ]
+     },
+     "inputs": {
+      "explain": "false",
+      "mode": "hybrid",
+      "query": "我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。",
+      "top_k": "4"
+     }
+    },
+    {
+     "title": "知识库检索（seekdb 原生混合）",
+     "type": "knowledge-retrieval",
+     "status": "succeeded",
+     "elapsed_time": 0.126713,
+     "error": null,
+     "outputs": {
+      "result": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "b0d537d3-a84f-4b53-bfee-6a51e6511913",
+         "retriever_from": "workflow",
+         "score": 47.1408406459777,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 826,
+         "segment_position": 9,
+         "segment_index_node_hash": "4e23368f8d74a9bf7fe915597daac36e1ef1b66239fd2e1d17b2f958e6febddc",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 并发控制核心机制,区分背题与读懂源码\n- 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本重新判断,直到找到可见版本或链尽头;RC 每条 select 语句生成新 ReadView,RR 只在事务第一次快照读生成并复用;update/delete/select for update 是当前读,读最新版本并加锁\n- 追问: 为什么 RR 下 A 事务改了自己看不到的行不会冲突,当前读和快照读看到不同版本怎么解释?；undo 版本链太长会怎样,purge 线程和 long transaction 有什么关系?；ReadVi…(826 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "0646826c-0814-4281-b982-40f67f8f00bc",
+         "retriever_from": "workflow",
+         "score": 33.465857256733656,
+         "child_chunks": [],
+         "segment_hit_count": 10,
+         "segment_word_count": 636,
+         "segment_position": 8,
+         "segment_index_node_hash": "cd0f08ed08b8e4fbba6914a4dde8073193129673755c9b5a82c84dda6233ee0e",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 概念与异常术语能否精确对上\n- 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\"快照读+当前读\"组合,并非完全无幻读,快照读与当前读混用会出现\"自己刚插入的行看不见/看得见\"的观感不一致\n- 追问: 脏读、不可重复读、幻读的边界例子各给一个?；为什么 InnoDB 选 RR 而不是 RC 作为默认,主从复制上有什么考虑?；线上把隔离级别调成 RC 会影响什么?\n- 评分标尺: 及格=四档与三种异常对应正确;良好=说清 ReadView 生成时机在 RC/RR 的差异;优秀=能解释 RR 下仍可能幻读的场景和 binlog 格式与 RC 的关…(636 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "00267b57-3d02-4d70-9364-edda6af01976",
+         "retriever_from": "workflow",
+         "score": 17.496735665371066,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 703,
+         "segment_position": 11,
+         "segment_index_node_hash": "fc9f30f7bbe66c880312dae006819160da92dc602959231f0850d1e1e7a4e6ab",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 死锁的四个必要条件是什么,MySQL 怎么检测和避免?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 能把理论四条件落到 InnoDB 的实现与工程实践\n- 参考答案要点: 互斥、持有并等待、不可剥夺、循环等待,破坏任一即可预防;InnoDB 默认 innodb_deadlock_detect=ON,用 wait-for graph 检测环,发现死锁后回滚 undo 量(trx 修改行数×权重)最小的事务并报 ERROR 1213,业务需能重试;另一种策略是关检测改用 innodb_lock_wait_timeout=50 秒超时,代价是热点行并发高时全量排队、吞吐坍塌;工程上避免的手法:多行更新按固定顺序(如主键升序)加锁、事务尽量短小且不要在事务里做 RPC、大事务拆小并用索引精确命中、用 update ... where id=? 而不是先 select 再 update、必要时用 SELECT ... FOR UPDATE SKIP LOCKED(MySQL 8.0)做队列抢占;热点账户场景可改乐观锁版本号或队列化合并更新\n- 追问: 死锁检测和超时回滚两种方案分别的代价是什么?；给一个 RR 下两条 update 交叉导致死锁的具体例子?；MySQL 8.0 的 SKIP LOCKED 适合什么业务?\n- 评分标尺: 及格=四条件与 1213 回滚代价;良好=…(703 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "7f14cd6c-c303-48b6-9078-1b3c0385049c",
+         "retriever_from": "workflow",
+         "score": 13.979738157882391,
+         "child_chunks": [],
+         "segment_hit_count": 1,
+         "segment_word_count": 744,
+         "segment_position": 19,
+         "segment_index_node_hash": "2d0dca42fca3e32edfdf3deb9d3d5dbfc5ef0da1a2b20593ebd1c03f932c308e",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 乐观锁和悲观锁在代码和数据库层面怎么落地?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 并发更新方案选型与实现细节\n- 参考答案要点: 悲观锁用 select ... for update 加行锁(当前读,读最新版本并阻塞别人修改),业务再 update,必须在事务内,并发高时排队,注意超时 innodb_lock_wait_timeout=50 秒与死锁;也可用 update ... where id=? and status=0 的原子条件更新,一条语句完成\"检查+修改\",依赖行锁避免竞态,这是最轻量的悲观做法;乐观锁加 version 或 update_time 列,update t set stock=stock-1,version=version+1 where id=? and version=?,由应用判断 affected rows 是否为 0 决定重试;重试策略要有上限与退避,热点行乐观锁冲突率极高时反而退化;Redis 分布式锁不是数据库锁替代品,存在续期与主从切换丢锁问题;余额扣减这类场景可用队列串行化或 CAS 分桶(stock 拆多行)降低争抢\n- 追问: version 字段用什么类型、会不会溢出?；乐观锁冲突率高的判断指标是什么,该转悲观还是转架构?；select for update 不加索引会锁什么?\n- 评分标尺: 及格=两种锁的 …(744 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "b7b9960d-f1c5-49d9-a613-0051a6380443",
+         "document_name": "07-编程语言与工程实践",
+         "data_source_type": "upload_file",
+         "segment_id": "edbf9642-f436-4517-a56b-b523ec24ac40",
+         "retriever_from": "workflow",
+         "score": 12.96750760860641,
+         "child_chunks": [],
+         "segment_hit_count": 3,
+         "segment_word_count": 755,
+         "segment_position": 15,
+         "segment_index_node_hash": "feadf37aa2d672af922332114e05c5e21c4bb19eabcca5e79fce2f8c655d3826",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "07-编程语言与工程实践",
+        "files": null,
+        "content": "Q: rebase 和 merge 的区别是什么，什么时候绝对不能 rebase？\n- 领域: 项目\n- 难度: 中级\n- 考察点: 提交不可变性，以及改写共享历史的后果\n- 参考答案要点: merge 生成有两个父的 merge commit，保留真实分叉拓扑、可追溯但图乱；rebase 把提交逐个重放成新 hash（commit 内容含 parent，等于全新提交），得到线性历史，利于 git bisect 与 review；铁律：只 rebase 本地或未推送分支，已共享的 main/develop 不能 rebase，否则协作者历史分叉；必须改写远端时用 `git push --force-with-lease`（远端被动过就拒绝）而非裸 -f；常用组合：`git pull --rebase` 免生 Merge branch 提交、`git rebase -i` 做 squash/fixup/reword、`--amend` 修最后一次、cherry-pick 移植到 release 分支；冲突成本不同：merge 一次解完，rebase 每个提交都要解，可用 rerere 复用解法；平台 Squash Merge 是折中，代价是丢细粒度提交与精确 blame\n- 追问: 已合进 main 的分支还能 rebase 吗？squash 之后想找回单个提交怎么办？\n- 评分标尺…(755 字符)",
+        "summary": null
+       }
+      ]
+     },
+     "inputs": {
+      "query": "我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。"
+     }
+    },
+    {
+     "title": "检索小结（确定性）",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.055986,
+     "error": null,
+     "outputs": {
+      "summary": "检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=14 ms（其中 query embedding 6 ms）｜融合=RRF K=60 recall=20"
+     },
+     "inputs": {
+      "mode": "hybrid",
+      "kr": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "b0d537d3-a84f-4b53-bfee-6a51e6511913",
+         "retriever_from": "workflow",
+         "score": 47.1408406459777,
+         "child_chunks": [],
+         "segment_hit_count": 7,
+         "segment_word_count": 826,
+         "segment_position": 9,
+         "segment_index_node_hash": "4e23368f8d74a9bf7fe915597daac36e1ef1b66239fd2e1d17b2f958e6febddc",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 并发控制核心机制,区分背题与读懂源码\n- 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本重新判断,直到找到可见版本或链尽头;RC 每条 select 语句生成新 ReadView,RR 只在事务第一次快照读生成并复用;update/delete/select for update 是当前读,读最新版本并加锁\n- 追问: 为什么 RR 下 A 事务改了自己看不到的行不会冲突,当前读和快照读看到不同版本怎么解释?；undo 版本链太长会怎样,purge 线程和 long transaction 有什么关系?；ReadVi…(826 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "0646826c-0814-4281-b982-40f67f8f00bc",
+         "retriever_from": "workflow",
+         "score": 33.465857256733656,
+         "child_chunks": [],
+         "segment_hit_count": 10,
+         "segment_word_count": 636,
+         "segment_position": 8,
+         "segment_index_node_hash": "cd0f08ed08b8e4fbba6914a4dde8073193129673755c9b5a82c84dda6233ee0e",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 四种隔离级别分别解决什么问题,MySQL 默认是哪一档?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 概念与异常术语能否精确对上\n- 参考答案要点: 读未提交会出现脏读(读到别事务未提交的数据);读已提交避免脏读,但同一事务内两次读同一行结果不同,称不可重复读,由 MVCC 每次 select 生成新 ReadView 实现;可重复读避免不可重复读,InnoDB 在 RR 下事务首次快照读时生成 ReadView 并复用,同时用 Next-Key Lock(记录锁+间隙锁)在当前读场景下锁住区间,大部分消除幻读;串行化把读也加共享锁退化为并发最差;MySQL 默认是 REPEATABLE-READ,与 SQL 标准不同;要严格杜绝幻读需 select for update 走当前读;RR 是 InnoDB 的\"快照读+当前读\"组合,并非完全无幻读,快照读与当前读混用会出现\"自己刚插入的行看不见/看得见\"的观感不一致\n- 追问: 脏读、不可重复读、幻读的边界例子各给一个?；为什么 InnoDB 选 RR 而不是 RC 作为默认,主从复制上有什么考虑?；线上把隔离级别调成 RC 会影响什么?\n- 评分标尺: 及格=四档与三种异常对应正确;良好=说清 ReadView 生成时机在 RC/RR 的差异;优秀=能解释 RR 下仍可能幻读的场景和 binlog 格式与 RC 的关…(636 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "00267b57-3d02-4d70-9364-edda6af01976",
+         "retriever_from": "workflow",
+         "score": 17.496735665371066,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 703,
+         "segment_position": 11,
+         "segment_index_node_hash": "fc9f30f7bbe66c880312dae006819160da92dc602959231f0850d1e1e7a4e6ab",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 死锁的四个必要条件是什么,MySQL 怎么检测和避免?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 能把理论四条件落到 InnoDB 的实现与工程实践\n- 参考答案要点: 互斥、持有并等待、不可剥夺、循环等待,破坏任一即可预防;InnoDB 默认 innodb_deadlock_detect=ON,用 wait-for graph 检测环,发现死锁后回滚 undo 量(trx 修改行数×权重)最小的事务并报 ERROR 1213,业务需能重试;另一种策略是关检测改用 innodb_lock_wait_timeout=50 秒超时,代价是热点行并发高时全量排队、吞吐坍塌;工程上避免的手法:多行更新按固定顺序(如主键升序)加锁、事务尽量短小且不要在事务里做 RPC、大事务拆小并用索引精确命中、用 update ... where id=? 而不是先 select 再 update、必要时用 SELECT ... FOR UPDATE SKIP LOCKED(MySQL 8.0)做队列抢占;热点账户场景可改乐观锁版本号或队列化合并更新\n- 追问: 死锁检测和超时回滚两种方案分别的代价是什么?；给一个 RR 下两条 update 交叉导致死锁的具体例子?；MySQL 8.0 的 SKIP LOCKED 适合什么业务?\n- 评分标尺: 及格=四条件与 1213 回滚代价;良好=…(703 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "7f14cd6c-c303-48b6-9078-1b3c0385049c",
+         "retriever_from": "workflow",
+         "score": 13.979738157882391,
+         "child_chunks": [],
+         "segment_hit_count": 1,
+         "segment_word_count": 744,
+         "segment_position": 19,
+         "segment_index_node_hash": "2d0dca42fca3e32edfdf3deb9d3d5dbfc5ef0da1a2b20593ebd1c03f932c308e",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 乐观锁和悲观锁在代码和数据库层面怎么落地?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 并发更新方案选型与实现细节\n- 参考答案要点: 悲观锁用 select ... for update 加行锁(当前读,读最新版本并阻塞别人修改),业务再 update,必须在事务内,并发高时排队,注意超时 innodb_lock_wait_timeout=50 秒与死锁;也可用 update ... where id=? and status=0 的原子条件更新,一条语句完成\"检查+修改\",依赖行锁避免竞态,这是最轻量的悲观做法;乐观锁加 version 或 update_time 列,update t set stock=stock-1,version=version+1 where id=? and version=?,由应用判断 affected rows 是否为 0 决定重试;重试策略要有上限与退避,热点行乐观锁冲突率极高时反而退化;Redis 分布式锁不是数据库锁替代品,存在续期与主从切换丢锁问题;余额扣减这类场景可用队列串行化或 CAS 分桶(stock 拆多行)降低争抢\n- 追问: version 字段用什么类型、会不会溢出?；乐观锁冲突率高的判断指标是什么,该转悲观还是转架构?；select for update 不加索引会锁什么?\n- 评分标尺: 及格=两种锁的 …(744 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "b7b9960d-f1c5-49d9-a613-0051a6380443",
+         "document_name": "07-编程语言与工程实践",
+         "data_source_type": "upload_file",
+         "segment_id": "edbf9642-f436-4517-a56b-b523ec24ac40",
+         "retriever_from": "workflow",
+         "score": 12.96750760860641,
+         "child_chunks": [],
+         "segment_hit_count": 3,
+         "segment_word_count": 755,
+         "segment_position": 15,
+         "segment_index_node_hash": "feadf37aa2d672af922332114e05c5e21c4bb19eabcca5e79fce2f8c655d3826",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "07-编程语言与工程实践",
+        "files": null,
+        "content": "Q: rebase 和 merge 的区别是什么，什么时候绝对不能 rebase？\n- 领域: 项目\n- 难度: 中级\n- 考察点: 提交不可变性，以及改写共享历史的后果\n- 参考答案要点: merge 生成有两个父的 merge commit，保留真实分叉拓扑、可追溯但图乱；rebase 把提交逐个重放成新 hash（commit 内容含 parent，等于全新提交），得到线性历史，利于 git bisect 与 review；铁律：只 rebase 本地或未推送分支，已共享的 main/develop 不能 rebase，否则协作者历史分叉；必须改写远端时用 `git push --force-with-lease`（远端被动过就拒绝）而非裸 -f；常用组合：`git pull --rebase` 免生 Merge branch 提交、`git rebase -i` 做 squash/fixup/reword、`--amend` 修最后一次、cherry-pick 移植到 release 分支；冲突成本不同：merge 一次解完，rebase 每个提交都要解，可用 rerere 复用解法；平台 Squash Merge 是折中，代价是丢细粒度提交与精确 blame\n- 追问: 已合进 main 的分支还能 rebase 吗？squash 之后想找回单个提交怎么办？\n- 评分标尺…(755 字符)",
+        "summary": null
+       }
+      ],
+      "tool_text": "{\"query\":\"我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":14,\"embed_ms\":6,\"results\":[{\"id\":\"ed1bf3f5-c25d-4066-8df4-c89e5af56365\",\"text\":\"Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合? - 领域: 数据库 - 难度: 高级 - 考察点: 并发控制核心机制,区分背题与读懂源码 - 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本…(3950 字符)"
+     }
+    },
+    {
+     "title": "面试官",
+     "type": "llm",
+     "status": "succeeded",
+     "elapsed_time": 6.695664,
+     "error": null,
+     "model": {
+      "provider": "langgenius/deepseek/deepseek",
+      "name": "deepseek-flash",
+      "usage": {
+       "prompt_tokens": 5154,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 1017,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 6171,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 6.686,
+       "time_to_first_token": 0.752,
+       "time_to_generate": 5.934
+      }
+     },
+     "outputs": {
+      "text": "本轮仍用「知识库检索」通道的 MVCC 实现题来评分，判定用的是其中 ReadView 生成时机和可见性判定顺序两项标准；seekdb 工具检索通道返回的隔离级别题也印证了“RC 每条 select 新建、RR 首次快照读复用”这一差异，两通道说法一致，没有冲突。\n\n直接给结论：不及格，而且是方向性错误。对照评分标尺，及格线要求“说出 undo 版本链 + ReadView 两个部件”，你只提到 ReadView，`DB_TRX_ID`/`DB_ROLL_PTR` 和版本链完全没有出现；更关键的是，你把两者的生成时机说反了——素材写得很明确：**RC 才是每条 select 语句生成新 ReadView，RR 只在事务第一次快照读时生成并复用**。你描述的“每条 SELECT 重新生成、能看见别的事务最新提交”恰恰就是不可重复读的表现，属于 RC 的行为，不是 RR。RR 之所以能避免不可重复读，就是因为复用同一个 ReadView。另外，ReadView 要判断的是可见性，它并不是“数据快照副本”，数据本身来自版本链，这是本题的常见误区之一。补讲机制（只按素材）：ReadView 四个字段是 `m_ids`（生成时活跃事务 id 集合）、`min_trx_id`（最小活跃）、`max_trx_id`（下一个将分配的事务号）、`creator_trx_id`；判定顺序是：行 `tr…(876 字符)",
+      "reasoning_content": "<!--dify-deepseek-reasoning-->候选人答错了核心点：RR 下 ReadView 只在首次快照读生成并复用，不是每条 SELECT 重新生成（那是 RC）。而且他讲\"能看到别的事务最新提交的修改\"——这正是不可重复读的表现，与 RR 语义相反。他也没讲版本链、四字段、可见性判定顺序。\n\n打分：按标尺：及格=能说出 undo 版本链+ReadView 两个部件。他只提到 ReadView，没提 undo 版本链/DB_TRX_ID/DB_ROLL_PTR，而且 ReadView 生成时机说反了。所以不及格。\n\n要点出常见误区：他实际上把 RC 的行为安到 RR 上，而素材的常见误区是\"把 ReadView 记成数据快照副本\"、\"说 MVCC 靠加读锁\"。他的错误更接近把 RC/RR 的 ReadView 生成时机搞反。\n\n按规则 3：答得差退回中级/初级并补一段机制讲解（只能用素材内容）。按规则 2：判分后抛追问之一。规则 3 说答得差要补机制讲解，同时规则 2 说每轮只做一件事……判分+补讲解+追问可以在两段内完成。输出格式最多两段。\n\n正文两段：① 通道说明一句（重复？规则要求①说明素材通道覆盖程度。上一轮已说明，本轮还是给出简短说明）。实际上我上一轮已说明。这轮仍按格式，可以简短。\n\n第二段：判分 + 机制讲解（用素材：RR 只在事务第一次快照读生成并…(978 字符)",
+      "usage": {
+       "prompt_tokens": 5154,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 1017,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 6171,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 6.686,
+       "time_to_first_token": 0.752,
+       "time_to_generate": 5.934
+      },
+      "finish_reason": "stop"
+     },
+     "inputs": {
+      "#sys.query#": "我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。",
+      "#1000000000004.text#": "{\"query\":\"我答：在 RR 隔离级别下，事务一开始就生成一个 ReadView，之后每条 SELECT 都重新生成一个新的 ReadView，所以能看到别的事务最新提交的修改。请打分并追问。\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":14,\"embed_ms\":6,\"results\":[{\"id\":\"ed1bf3f5-c25d-4066-8df4-c89e5af56365\",\"text\":\"Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合? - 领域: 数据库 - 难度: 高级 - 考察点: 并发控制核心机制,区分背题与读懂源码 - 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本…(3950 字符)",
+      "#context#": "Q: 讲讲 MVCC 的实现,undo 版本链和 ReadView 怎么配合?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 并发控制核心机制,区分背题与读懂源码\n- 参考答案要点: 每行隐藏列 DB_TRX_ID(最近修改它的事务号)和 DB_ROLL_PTR(指向 undo log 里的上一版本),多次修改串成版本链;ReadView 四个字段:m_ids(生成时活跃的事务 id 集合)、min_trx_id(最小活跃)、max_trx_id(下一个将分配的事务号)、creator_trx_id;可见性判断:行的 trx_id==creator 可见;小于 min_trx_id 说明已提交,可见;大于等于 max_trx_id 说明是本快照之后开启的事务,不可见;落在 m_ids 中说明未提交,不可见;不可见则沿 roll_ptr 往前找上一版本重新判断,直到找到可见版本或链尽头;RC 每条 select 语句生成新 ReadView,RR 只在事务第一次快照读生成并复用;update/delete/select for update 是当前读,读最新版本并加锁\n- 追问: 为什么 RR 下 A 事务改了自己看不到的行不会冲突,当前读和快照读看到不同版本怎么解释?；undo 版本链太长会怎样,purge 线程和 long transaction 有什么关系?；ReadVi…(3668 字符)",
+      "model_provider": "langgenius/deepseek/deepseek",
+      "model_name": "deepseek-flash"
+     }
+    },
+    {
+     "title": "回答",
+     "type": "answer",
+     "status": "succeeded",
+     "elapsed_time": 0.000088,
+     "error": null,
+     "outputs": {
+      "answer": "本轮仍用「知识库检索」通道的 MVCC 实现题来评分，判定用的是其中 ReadView 生成时机和可见性判定顺序两项标准；seekdb 工具检索通道返回的隔离级别题也印证了“RC 每条 select 新建、RR 首次快照读复用”这一差异，两通道说法一致，没有冲突。\n\n直接给结论：不及格，而且是方向性错误。对照评分标尺，及格线要求“说出 undo 版本链 + ReadView 两个部件”，你只提到 ReadView，`DB_TRX_ID`/`DB_ROLL_PTR` 和版本链完全没有出现；更关键的是，你把两者的生成时机说反了——素材写得很明确：**RC 才是每条 select 语句生成新 ReadView，RR 只在事务第一次快照读时生成并复用**。你描述的“每条 SELECT 重新生成、能看见别的事务最新提交”恰恰就是不可重复读的表现，属于 RC 的行为，不是 RR。RR 之所以能避免不可重复读，就是因为复用同一个 ReadView。另外，ReadView 要判断的是可见性，它并不是“数据快照副本”，数据本身来自版本链，这是本题的常见误区之一。补讲机制（只按素材）：ReadView 四个字段是 `m_ids`（生成时活跃事务 id 集合）、`min_trx_id`（最小活跃）、`max_trx_id`（下一个将分配的事务号）、`creator_trx_id`；判定顺序是：行 `tr…(996 字符)",
+      "files": []
+     },
+     "inputs": {}
+    }
+   ],
+   "answer": "本轮仍用「知识库检索」通道的 MVCC 实现题来评分，判定用的是其中 ReadView 生成时机和可见性判定顺序两项标准；seekdb 工具检索通道返回的隔离级别题也印证了“RC 每条 select 新建、RR 首次快照读复用”这一差异，两通道说法一致，没有冲突。\n\n直接给结论：不及格，而且是方向性错误。对照评分标尺，及格线要求“说出 undo 版本链 + ReadView 两个部件”，你只提到 ReadView，`DB_TRX_ID`/`DB_ROLL_PTR` 和版本链完全没有出现；更关键的是，你把两者的生成时机说反了——素材写得很明确：**RC 才是每条 select 语句生成新 ReadView，RR 只在事务第一次快照读时生成并复用**。你描述的“每条 SELECT 重新生成、能看见别的事务最新提交”恰恰就是不可重复读的表现，属于 RC 的行为，不是 RR。RR 之所以能避免不可重复读，就是因为复用同一个 ReadView。另外，ReadView 要判断的是可见性，它并不是“数据快照副本”，数据本身来自版本链，这是本题的常见误区之一。补讲机制（只按素材）：ReadView 四个字段是 `m_ids`（生成时活跃事务 id 集合）、`min_trx_id`（最小活跃）、`max_trx_id`（下一个将分配的事务号）、`creator_trx_id`；判定顺序是：行 `trx_id` 等于 `creator_trx_id` 则可见；小于 `min_trx_id` 说明已提交，可见；大于等于 `max_trx_id` 说明是本快照之后开启的事务，不可见；落在 `m_ids` 里说明未提交，不可见；不可见就沿 `roll_ptr` 往前找上一版本重新判断，直到找到可见版本或到链尽头；`update`/`delete`/`select for update` 是当前读，读最新版本并加锁。请先用这套判定顺序重新回答上面 `account` 那道题，然后回答追问：**ReadView 能不能复用，RC 复用会有什么问题？**\n\n检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=14 ms（其中 query embedding 6 ms）｜融合=RRF K=60 recall=20",
+   "events": [
+    {
+     "event": "workflow_finished",
+     "status": "succeeded",
+     "error": null,
+     "elapsed_time": 7.001760735000062
+    }
+   ],
+   "workflow_run_id": "adaddc3f-e18b-4c18-bde6-6baa8e2c98f8",
+   "message_end": {
+    "answer": "",
+    "metadata": {}
+   },
+   "summary": {
+    "知识库检索": {
+     "hits": 5,
+     "top_score": "47.141",
+     "titles": [
+      "01-数据库原理与InnoDB",
+      "01-数据库原理与InnoDB",
+      "01-数据库原理与InnoDB",
+      "01-数据库原理与InnoDB",
+      "07-编程语言与工程实践"
+     ],
+     "elapsed_time": 0.126713
+    },
+    "seekdb工具": {
+     "hits": 4,
+     "mode": "hybrid",
+     "took_ms": 14,
+     "embed_ms": 6,
+     "has_explain": false,
+     "top_channels": [
+      "fts:1,vec:2 rrf=0.03252",
+      "fts:2,vec:1 rrf=0.03252",
+      "fts:10,vec:5 rrf=0.02967",
+      "fts:13,vec:4 rrf=0.02932"
+     ],
+     "elapsed_time": 0.033552
+    },
+    "生效模式": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）",
+    "answer_length": 996
+   }
+  }
+ ]
+}

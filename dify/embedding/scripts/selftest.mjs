@@ -1,0 +1,12 @@
+import { existsSync } from "node:fs";
+import { pipeline, env } from "@huggingface/transformers";
+const modelDir = new URL("../models/", import.meta.url);
+env.allowLocalModels = true;
+env.allowRemoteModels = false;
+env.localModelPath = decodeURIComponent(modelDir.pathname.replace(/^\/([a-zA-Z]:)/, "$1"));
+env.useBrowserCache = false;
+console.log("localModelPath=", env.localModelPath, "exists=", existsSync(env.localModelPath + "Xenova/bge-small-zh-v1.5/config.json"));
+const t0 = Date.now();
+const p = await pipeline("feature-extraction", "Xenova/bge-small-zh-v1.5", { dtype: "q8" });
+const out = await p("什么是 MVCC？", { pooling: "cls", normalize: true });
+console.log(JSON.stringify({ load_ms: Date.now() - t0, dim: out.dimensions, first3: Array.from(out.data.slice(0, 3)).map((x) => +x.toFixed(4)) }));

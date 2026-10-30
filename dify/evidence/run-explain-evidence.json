@@ -1,0 +1,483 @@
+{
+ "started_at": "2026-10-30T01:58:37.804Z",
+ "base": "http://localhost",
+ "turns": [
+  {
+   "turn": 1,
+   "query": "证据：哪些写法会导致索引失效？",
+   "nodes": [
+    {
+     "title": "开始",
+     "type": "start",
+     "status": "succeeded",
+     "elapsed_time": 0.000073,
+     "error": null,
+     "outputs": {},
+     "inputs": {}
+    },
+    {
+     "title": "模式路由",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.049282,
+     "error": null,
+     "outputs": {
+      "clean_query": "哪些写法会导致索引失效？",
+      "explain": "true",
+      "mode": "hybrid",
+      "mode_label": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）"
+     },
+     "inputs": {
+      "text": "证据：哪些写法会导致索引失效？"
+     }
+    },
+    {
+     "title": "seekdb 混合检索工具（可消融）",
+     "type": "tool",
+     "status": "succeeded",
+     "elapsed_time": 0.053638,
+     "error": null,
+     "outputs": {
+      "text": "{\"query\":\"哪些写法会导致索引失效？\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":22,\"embed_ms\":6,\"results\":[{\"id\":\"453d4421-27e9-4627-91ae-392189346888\",\"text\":\"Q: 哪些写法会导致索引失效,你在项目里踩过哪些坑? - 领域: 数据库 - 难度: 中级 - 考察点: 实战经验 + 对 optimizer 成本判断的理解 - 参考答案要点: 对索引列做函数或运算,如 date(create_time)='2026-10-01'、id+1=10,应改成列单独出现在一侧的范围写法;隐式类型转换,varchar 列写 where phone=13800000000 会把列做 CAST 使索引不可用(varchar→int 才失效,int 列传字符串只截断仍可用);前导 % 的 like '%xx',后置 % 可走索引;or 连接非同一索引的列;在低区分度列(如 status 只有 3 个值)上优化器按成本估算认为回表比全表扫贵,主动放弃索引,可用 force index 验证;联合索引不满足最左前缀;not in / <> / is not null 通常退化为扫描;字符集或 collation 不一致的关联列 - 追问: 为什么 int 列传字符串还能用索引,varcha…(4644 字符)",
+      "files": [],
+      "json": [
+       {
+        "query": "哪些写法会导致索引失效？",
+        "mode": "hybrid",
+        "limit": 4,
+        "took_ms": 22,
+        "embed_ms": 6,
+        "results": [
+         {
+          "id": "453d4421-27e9-4627-91ae-392189346888",
+          "text": "Q: 哪些写法会导致索引失效,你在项目里踩过哪些坑? - 领域: 数据库 - 难度: 中级 - 考察点: 实战经验 + 对 optimizer 成本判断的理解 - 参考答案要点: 对索引列做函数或运算,如 date(create_time)='2026-10-01'、id+1=10,应改成列单独出现在一侧的范围写法;隐式类型转换,varchar 列写 where phone=13800000000 会把列做 CAST 使索引不可用(varchar→int 才失效,int 列传字符串只截断仍可用);前导 % 的 like '%xx',后置 % 可走索引;or 连接非同一索引的列;在低区分度列(如 status 只有 3 个值)上优化器按成本估算认为回表比全表扫贵,主动放弃索引,可用 force index 验证;联合索引不满足最左前缀;not in / <> / is not null 通常退化为扫描;字符集或 collation 不一致的关联列 - 追问: 为什么 int 列传字符串还能用索引,varchar 列传数字就不能?；优化器基于什么统计信息决定放弃索引,rows 估不准时怎么办?；like '%关键字%' 业务上必须做,你有什么替代方案? - 评分标尺: 及格=能列 3 类以上失效写法;良好=区分\"语法上不可用\"和\"成本上被放弃\";优秀=给出 collation 不一致、…(687 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.03279,
+          "fts_score": 15.430405,
+          "vec_distance": 0.814397,
+          "channels": "fts:1,vec:1"
+         },
+         {
+          "id": "272dd294-bf3e-421a-b30f-40f759d389f1",
+          "text": "Q: 统计某月订单,写了 `where date_format(create_time,'%Y-%m')='2026-10'`,为什么走不了索引,该怎么改? - 领域: 数据库 - 难度: 中级 - 考察点: 表达式使索引失效的原理与 sargable 改写 - 参考答案要点: 对索引列套函数后,列值不再是有序可二分的结构,优化器无法用它做区间定位,只能全表/全索引扫描;正确写法是把列单独放一侧、常量放另一侧:where create_time>='2026-10-01 00:00:00' and create_time<'2026-11-01 00:00:00',这是半开区间,能命中 create_time 上的 B+树范围扫描;用 between '2026-10-01' and '2026-10-31' 会漏掉 10-31 当天带时分秒的记录,这是典型 bug;要按天/月分组时可以在 select 里用 date(create_time) 分组(排序发生在过滤之后不影响索引),或者建函数索引/生成列(MySQL 8.0.13 generated column + index on (date(create_time)))直接按天聚合;时区与列类型(datetime vs timestamp)会影响边界 - 追问: 8.0 的函数索引怎么建,和生成列索引有什么区别?；selec…(826 字符)",
+          "document_id": "1ca69262-391c-473c-927c-75a10c1e3bfe",
+          "rrf": 0.03226,
+          "fts_score": 8.213251,
+          "vec_distance": 0.895005,
+          "channels": "fts:2,vec:2"
+         },
+         {
+          "id": "e8151677-0673-4a5c-be7e-d1d52d2e4de8",
+          "text": "Q: 最左前缀原则是什么意思,联合索引 (a,b,c) 为什么查询 b 用不上? - 领域: 数据库 - 难度: 中级 - 考察点: 对联合索引排序规则和 optimizer 行为的理解深度 - 参考答案要点: 联合索引按 a 排序,a 相同按 b 排序,b 相同按 c 排序,只有从最左列开始连续使用才能保证有序可二分,跳过 a 直接按 b 过滤时 b 在全局是乱序的;等值命中列之后遇到 range 条件,range 之后的列不再用于精确定位,例如 a=1 and b>2 and c=3 中只有 (a,b) 参与索引扫描,c 需要靠 ICP 在索引层过滤;MySQL 8.0.13 起有 index skip scan,当最左列基数很低(如只有 male/female)时可跳过最左列,EXPLAIN 显示 Using index skip scan;等值列表顺序无关,优化器会重排 b=2 and a=1 为 (a,b);范围条件写对最左前缀长度可用 key_len 校验 - 追问: key_len 怎么算出联合索引实际用了几列?；a=1 and b>2 and c=3 里 c 完全没用吗,MySQL 有没有办法在索引层过滤它?；把联合索引顺序改成 (b,a,c) 原来的查询还能命中吗? - 评分标尺: 及格=答到索引按列顺序排序、必须从最左列开始;良好=讲清 range 之后列失效 …(700 字符)",
+          "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+          "rrf": 0.03031,
+          "fts_score": 5.244535,
+          "vec_distance": 0.952624,
+          "channels": "fts:7,vec:5"
+         },
+         {
+          "id": "f6586a48-09e2-43ff-aba8-01532a98967c",
+          "text": "Q: 用一分钟讲一下你项目里最难的那个技术点，难在哪？ - 领域: 项目 - 难度: 中级 - 考察点: 能否限时把难点定位到具体机制，而不是笼统说做了性能优化 - 参考答案要点: 背景带规模，如\"日均 30 万次查询、列表页 JOIN 5 张表\"；难点落到机制，如\"深翻页 LIMIT 100000,20 要扫完偏移行再丢弃\"；方案与代价，如\"改游标分页走索引，代价是不支持任意跳页\"；数据对比，如\"P99 从 2.1 秒降到 180 毫秒\"；复盘，如\"根因是索引覆盖不足，不是数据库慢\" - 追问: 这个瓶颈是你自己发现的还是别人告诉你的，当时哪个指标先异常？；你还试过哪些替代方案，为什么没选？；流量再涨十倍，这套方案先在哪一环崩掉？ - 评分标尺: 及格=说清难点且和自己写的代码有关；良好=给出方案并带前后对比的数字；优秀=讲得清方案的代价与失效边界 - 常见误区: 把难点说成\"并发太高\"\"数据量大\"这类环境描述；全程说\"我们优化了性能\"，被问 P99 是多少就卡住；一个放弃项都不给",
+          "document_id": "365984ac-8c3f-4756-8d56-caeabe0ddbe4",
+          "rrf": 0.02903,
+          "fts_score": 7.0132,
+          "vec_distance": 0.992585,
+          "channels": "fts:3,vec:16"
+         }
+        ],
+        "explain": "======================================================================================================================================\n|ID|OPERATOR               |NAME                                                                               |EST.ROWS|EST.TIME(us)|\n--------------------------------------------------------------------------------------------------------------------------------------\n|0 |SUBPLAN SCAN           |t                                                                                  |663     |5827        |\n|1 |└─UNION ALL            |                                …(1079 字符)"
+       }
+      ]
+     },
+     "inputs": {
+      "explain": "true",
+      "mode": "hybrid",
+      "query": "哪些写法会导致索引失效？",
+      "top_k": "4"
+     }
+    },
+    {
+     "title": "知识库检索（seekdb 原生混合）",
+     "type": "knowledge-retrieval",
+     "status": "succeeded",
+     "elapsed_time": 0.101906,
+     "error": null,
+     "outputs": {
+      "result": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "170e84fa-5e70-4fe3-9dbf-bdf5a1644899",
+         "retriever_from": "workflow",
+         "score": 15.430405494592929,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 688,
+         "segment_position": 5,
+         "segment_index_node_hash": "aadb910aade4318d1ba7ec7379e9adf54f4c942fe8618c48ea8dc0c17ddb833d",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 哪些写法会导致索引失效,你在项目里踩过哪些坑?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 实战经验 + 对 optimizer 成本判断的理解\n- 参考答案要点: 对索引列做函数或运算,如 date(create_time)='2026-10-01'、id+1=10,应改成列单独出现在一侧的范围写法;隐式类型转换,varchar 列写 where phone=13800000000 会把列做 CAST 使索引不可用(varchar→int 才失效,int 列传字符串只截断仍可用);前导 % 的 like '%xx',后置 % 可走索引;or 连接非同一索引的列;在低区分度列(如 status 只有 3 个值)上优化器按成本估算认为回表比全表扫贵,主动放弃索引,可用 force index 验证;联合索引不满足最左前缀;not in / <> / is not null 通常退化为扫描;字符集或 collation 不一致的关联列\n- 追问: 为什么 int 列传字符串还能用索引,varchar 列传数字就不能?；优化器基于什么统计信息决定放弃索引,rows 估不准时怎么办?；like '%关键字%' 业务上必须做,你有什么替代方案?\n- 评分标尺: 及格=能列 3 类以上失效写法;良好=区分\"语法上不可用\"和\"成本上被放弃\";优秀=给出 collation 不一致、…(688 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "1ca69262-391c-473c-927c-75a10c1e3bfe",
+         "document_name": "02-SQL实战与优化",
+         "data_source_type": "upload_file",
+         "segment_id": "8252fecd-5d10-4ecd-a404-0bf91db376e3",
+         "retriever_from": "workflow",
+         "score": 8.213250633239625,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 826,
+         "segment_position": 10,
+         "segment_index_node_hash": "dd56d70b58dd7aaf4083d9d816d91414c563837b0573f81eccc1c4498d113401",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "02-SQL实战与优化",
+        "files": null,
+        "content": "Q: 统计某月订单,写了 `where date_format(create_time,'%Y-%m')='2026-10'`,为什么走不了索引,该怎么改?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 表达式使索引失效的原理与 sargable 改写\n- 参考答案要点: 对索引列套函数后,列值不再是有序可二分的结构,优化器无法用它做区间定位,只能全表/全索引扫描;正确写法是把列单独放一侧、常量放另一侧:where create_time>='2026-10-01 00:00:00' and create_time<'2026-11-01 00:00:00',这是半开区间,能命中 create_time 上的 B+树范围扫描;用 between '2026-10-01' and '2026-10-31' 会漏掉 10-31 当天带时分秒的记录,这是典型 bug;要按天/月分组时可以在 select 里用 date(create_time) 分组(排序发生在过滤之后不影响索引),或者建函数索引/生成列(MySQL 8.0.13 generated column + index on (date(create_time)))直接按天聚合;时区与列类型(datetime vs timestamp)会影响边界\n- 追问: 8.0 的函数索引怎么建,和生成列索引有什么区别?；selec…(826 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "365984ac-8c3f-4756-8d56-caeabe0ddbe4",
+         "document_name": "09-项目深挖",
+         "data_source_type": "upload_file",
+         "segment_id": "dd1df20d-1d87-4e87-a4a8-3fe094c7dd7e",
+         "retriever_from": "workflow",
+         "score": 7.013200302017113,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 448,
+         "segment_position": 1,
+         "segment_index_node_hash": "bde1e065856247a405288f5bf5a5edc6a4bf9e69dafd2db342b1c23d2a01ae9e",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "09-项目深挖",
+        "files": null,
+        "content": "Q: 用一分钟讲一下你项目里最难的那个技术点，难在哪？\n- 领域: 项目\n- 难度: 中级\n- 考察点: 能否限时把难点定位到具体机制，而不是笼统说做了性能优化\n- 参考答案要点: 背景带规模，如\"日均 30 万次查询、列表页 JOIN 5 张表\"；难点落到机制，如\"深翻页 LIMIT 100000,20 要扫完偏移行再丢弃\"；方案与代价，如\"改游标分页走索引，代价是不支持任意跳页\"；数据对比，如\"P99 从 2.1 秒降到 180 毫秒\"；复盘，如\"根因是索引覆盖不足，不是数据库慢\"\n- 追问: 这个瓶颈是你自己发现的还是别人告诉你的，当时哪个指标先异常？；你还试过哪些替代方案，为什么没选？；流量再涨十倍，这套方案先在哪一环崩掉？\n- 评分标尺: 及格=说清难点且和自己写的代码有关；良好=给出方案并带前后对比的数字；优秀=讲得清方案的代价与失效边界\n- 常见误区: 把难点说成\"并发太高\"\"数据量大\"这类环境描述；全程说\"我们优化了性能\"，被问 P99 是多少就卡住；一个放弃项都不给",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "1ca69262-391c-473c-927c-75a10c1e3bfe",
+         "document_name": "02-SQL实战与优化",
+         "data_source_type": "upload_file",
+         "segment_id": "63058a82-6739-4274-8e74-dcfd0ba5ce39",
+         "retriever_from": "workflow",
+         "score": 7.007839487331721,
+         "child_chunks": [],
+         "segment_hit_count": 3,
+         "segment_word_count": 781,
+         "segment_position": 7,
+         "segment_index_node_hash": "a1e34db2e25f856ef2e0c55579e30bb8e95510577d40f61d801efda63acd6b60",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "02-SQL实战与优化",
+        "files": null,
+        "content": "Q: 三张表 user_info、orders、order_item 做联查,JOIN 顺序和驱动表该怎么定?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 优化器的 join 选择逻辑,而不是背\"小表驱动大表\"\n- 参考答案要点: MySQL 优化器固定用 left-deep 方式:FROM 里的表顺序会被按 cost 重新排列(可用 straight_join 强制),驱动表选\"经过 where 过滤后估算扫描行数最少\"的那张,而不是表物理大小最少;原则是让被驱动表的关联列有索引,避免 Nested-Loop 变成 M×N;8.0.18 起无索引时可用 hash join(EXPLAIN 显示 Using join buffer (hash join)),5.7 只有 BNL,会把被驱动表整表读进 join_buffer(默认 256KB,可调 join_buffer_size),代价极高;等值 join 列的类型与字符集 collation 必须一致,否则索引失效;关联条件尽量写成能利用索引的形式,join 顺序不对时可用 EXPLAIN 看谁在 Extra 里出现 Using join buffer\n- 追问: 为什么\"小表驱动大表\"这句话在 MySQL 里不完全对?；join_buffer_size 调大能替代索引吗?；collation 不一致时报什么、怎么改?\n…(781 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "b6a66dec-31e0-4859-9d8a-301792eda792",
+         "retriever_from": "workflow",
+         "score": 6.847024578604815,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 592,
+         "segment_position": 6,
+         "segment_index_node_hash": "211b59827216916051e29cbed98e52e8679d3d19aae39fff632d16d60e13ae9c",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 两个默认优化互相等待的症状\n- 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复\n- 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？\n- 评分标尺: 及格=说 Nagle 攒包与 40 毫秒来自 delayed ACK；良好=给 TCP_DELACK_MAX 与 TCP_NODELAY 默认状态；优秀=能讲 QUICKACK 非持久\n- 常见误区: 把 40 毫秒归给 TIME_WAIT；以为 TCP_NODELAY 默认开启\n\n## HTTP 与安全",
+        "summary": null
+       }
+      ]
+     },
+     "inputs": {
+      "query": "哪些写法会导致索引失效？"
+     }
+    },
+    {
+     "title": "检索小结（确定性）",
+     "type": "code",
+     "status": "succeeded",
+     "elapsed_time": 0.084361,
+     "error": null,
+     "outputs": {
+      "summary": "检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=22 ms（其中 query embedding 6 ms）｜融合=RRF K=60 recall=20"
+     },
+     "inputs": {
+      "mode": "hybrid",
+      "kr": [
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "5dcc1d47-5ad3-4900-8bd3-a579442cb514",
+         "document_name": "01-数据库原理与InnoDB",
+         "data_source_type": "upload_file",
+         "segment_id": "170e84fa-5e70-4fe3-9dbf-bdf5a1644899",
+         "retriever_from": "workflow",
+         "score": 15.430405494592929,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 688,
+         "segment_position": 5,
+         "segment_index_node_hash": "aadb910aade4318d1ba7ec7379e9adf54f4c942fe8618c48ea8dc0c17ddb833d",
+         "doc_metadata": null,
+         "position": 1
+        },
+        "title": "01-数据库原理与InnoDB",
+        "files": null,
+        "content": "Q: 哪些写法会导致索引失效,你在项目里踩过哪些坑?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 实战经验 + 对 optimizer 成本判断的理解\n- 参考答案要点: 对索引列做函数或运算,如 date(create_time)='2026-10-01'、id+1=10,应改成列单独出现在一侧的范围写法;隐式类型转换,varchar 列写 where phone=13800000000 会把列做 CAST 使索引不可用(varchar→int 才失效,int 列传字符串只截断仍可用);前导 % 的 like '%xx',后置 % 可走索引;or 连接非同一索引的列;在低区分度列(如 status 只有 3 个值)上优化器按成本估算认为回表比全表扫贵,主动放弃索引,可用 force index 验证;联合索引不满足最左前缀;not in / <> / is not null 通常退化为扫描;字符集或 collation 不一致的关联列\n- 追问: 为什么 int 列传字符串还能用索引,varchar 列传数字就不能?；优化器基于什么统计信息决定放弃索引,rows 估不准时怎么办?；like '%关键字%' 业务上必须做,你有什么替代方案?\n- 评分标尺: 及格=能列 3 类以上失效写法;良好=区分\"语法上不可用\"和\"成本上被放弃\";优秀=给出 collation 不一致、…(688 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "1ca69262-391c-473c-927c-75a10c1e3bfe",
+         "document_name": "02-SQL实战与优化",
+         "data_source_type": "upload_file",
+         "segment_id": "8252fecd-5d10-4ecd-a404-0bf91db376e3",
+         "retriever_from": "workflow",
+         "score": 8.213250633239625,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 826,
+         "segment_position": 10,
+         "segment_index_node_hash": "dd56d70b58dd7aaf4083d9d816d91414c563837b0573f81eccc1c4498d113401",
+         "doc_metadata": null,
+         "position": 2
+        },
+        "title": "02-SQL实战与优化",
+        "files": null,
+        "content": "Q: 统计某月订单,写了 `where date_format(create_time,'%Y-%m')='2026-10'`,为什么走不了索引,该怎么改?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 表达式使索引失效的原理与 sargable 改写\n- 参考答案要点: 对索引列套函数后,列值不再是有序可二分的结构,优化器无法用它做区间定位,只能全表/全索引扫描;正确写法是把列单独放一侧、常量放另一侧:where create_time>='2026-10-01 00:00:00' and create_time<'2026-11-01 00:00:00',这是半开区间,能命中 create_time 上的 B+树范围扫描;用 between '2026-10-01' and '2026-10-31' 会漏掉 10-31 当天带时分秒的记录,这是典型 bug;要按天/月分组时可以在 select 里用 date(create_time) 分组(排序发生在过滤之后不影响索引),或者建函数索引/生成列(MySQL 8.0.13 generated column + index on (date(create_time)))直接按天聚合;时区与列类型(datetime vs timestamp)会影响边界\n- 追问: 8.0 的函数索引怎么建,和生成列索引有什么区别?；selec…(826 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "365984ac-8c3f-4756-8d56-caeabe0ddbe4",
+         "document_name": "09-项目深挖",
+         "data_source_type": "upload_file",
+         "segment_id": "dd1df20d-1d87-4e87-a4a8-3fe094c7dd7e",
+         "retriever_from": "workflow",
+         "score": 7.013200302017113,
+         "child_chunks": [],
+         "segment_hit_count": 2,
+         "segment_word_count": 448,
+         "segment_position": 1,
+         "segment_index_node_hash": "bde1e065856247a405288f5bf5a5edc6a4bf9e69dafd2db342b1c23d2a01ae9e",
+         "doc_metadata": null,
+         "position": 3
+        },
+        "title": "09-项目深挖",
+        "files": null,
+        "content": "Q: 用一分钟讲一下你项目里最难的那个技术点，难在哪？\n- 领域: 项目\n- 难度: 中级\n- 考察点: 能否限时把难点定位到具体机制，而不是笼统说做了性能优化\n- 参考答案要点: 背景带规模，如\"日均 30 万次查询、列表页 JOIN 5 张表\"；难点落到机制，如\"深翻页 LIMIT 100000,20 要扫完偏移行再丢弃\"；方案与代价，如\"改游标分页走索引，代价是不支持任意跳页\"；数据对比，如\"P99 从 2.1 秒降到 180 毫秒\"；复盘，如\"根因是索引覆盖不足，不是数据库慢\"\n- 追问: 这个瓶颈是你自己发现的还是别人告诉你的，当时哪个指标先异常？；你还试过哪些替代方案，为什么没选？；流量再涨十倍，这套方案先在哪一环崩掉？\n- 评分标尺: 及格=说清难点且和自己写的代码有关；良好=给出方案并带前后对比的数字；优秀=讲得清方案的代价与失效边界\n- 常见误区: 把难点说成\"并发太高\"\"数据量大\"这类环境描述；全程说\"我们优化了性能\"，被问 P99 是多少就卡住；一个放弃项都不给",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "1ca69262-391c-473c-927c-75a10c1e3bfe",
+         "document_name": "02-SQL实战与优化",
+         "data_source_type": "upload_file",
+         "segment_id": "63058a82-6739-4274-8e74-dcfd0ba5ce39",
+         "retriever_from": "workflow",
+         "score": 7.007839487331721,
+         "child_chunks": [],
+         "segment_hit_count": 3,
+         "segment_word_count": 781,
+         "segment_position": 7,
+         "segment_index_node_hash": "a1e34db2e25f856ef2e0c55579e30bb8e95510577d40f61d801efda63acd6b60",
+         "doc_metadata": null,
+         "position": 4
+        },
+        "title": "02-SQL实战与优化",
+        "files": null,
+        "content": "Q: 三张表 user_info、orders、order_item 做联查,JOIN 顺序和驱动表该怎么定?\n- 领域: 数据库\n- 难度: 高级\n- 考察点: 优化器的 join 选择逻辑,而不是背\"小表驱动大表\"\n- 参考答案要点: MySQL 优化器固定用 left-deep 方式:FROM 里的表顺序会被按 cost 重新排列(可用 straight_join 强制),驱动表选\"经过 where 过滤后估算扫描行数最少\"的那张,而不是表物理大小最少;原则是让被驱动表的关联列有索引,避免 Nested-Loop 变成 M×N;8.0.18 起无索引时可用 hash join(EXPLAIN 显示 Using join buffer (hash join)),5.7 只有 BNL,会把被驱动表整表读进 join_buffer(默认 256KB,可调 join_buffer_size),代价极高;等值 join 列的类型与字符集 collation 必须一致,否则索引失效;关联条件尽量写成能利用索引的形式,join 顺序不对时可用 EXPLAIN 看谁在 Extra 里出现 Using join buffer\n- 追问: 为什么\"小表驱动大表\"这句话在 MySQL 里不完全对?；join_buffer_size 调大能替代索引吗?；collation 不一致时报什么、怎么改?\n…(781 字符)",
+        "summary": null
+       },
+       {
+        "metadata": {
+         "_source": "knowledge",
+         "dataset_id": "93bbd4ee-a5f2-48e4-aefc-f5215989f38a",
+         "dataset_name": "面试陪练知识库",
+         "document_id": "488f2470-7b4d-4d43-bdc7-b31184b2f74f",
+         "document_name": "04-计算机网络",
+         "data_source_type": "upload_file",
+         "segment_id": "b6a66dec-31e0-4859-9d8a-301792eda792",
+         "retriever_from": "workflow",
+         "score": 6.847024578604815,
+         "child_chunks": [],
+         "segment_hit_count": 6,
+         "segment_word_count": 592,
+         "segment_position": 6,
+         "segment_index_node_hash": "211b59827216916051e29cbed98e52e8679d3d19aae39fff632d16d60e13ae9c",
+         "doc_metadata": null,
+         "position": 5
+        },
+        "title": "04-计算机网络",
+        "files": null,
+        "content": "Q: Nagle 算法是什么，为什么我的请求偶发 40 毫秒延迟？\n- 领域: 网络\n- 难度: 高级\n- 考察点: 两个默认优化互相等待的症状\n- 参考答案要点: Nagle 规则是有已发未确认数据时新数据要攒够一个 MSS 或等 ACK 才发，为消除小包首部开销；对端默认还开延迟确认，最多等 `TCP_DELACK_MAX` 40 毫秒或搭下一个包回 ACK；两者咬合就死锁：客户端等 ACK 才发下一段、服务端等下一段才顺带 ACK，每对小往返固定卡约 40 毫秒；典型触发是一条消息分两次 write 或先发探测小包；处理是请求响应型协议设 `TCP_NODELAY`（Linux 默认开着 Nagle 要显式关）并合并小包为一次 write 或 writev；`TCP_QUICKACK` 只是临时关延迟确认，内核会自行恢复\n- 追问: 为什么 Nagle 与 delayed ACK 单独开都没问题？；除了分两次 write 还有哪些写法会踩坑？\n- 评分标尺: 及格=说 Nagle 攒包与 40 毫秒来自 delayed ACK；良好=给 TCP_DELACK_MAX 与 TCP_NODELAY 默认状态；优秀=能讲 QUICKACK 非持久\n- 常见误区: 把 40 毫秒归给 TIME_WAIT；以为 TCP_NODELAY 默认开启\n\n## HTTP 与安全",
+        "summary": null
+       }
+      ],
+      "tool_text": "{\"query\":\"哪些写法会导致索引失效？\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":22,\"embed_ms\":6,\"results\":[{\"id\":\"453d4421-27e9-4627-91ae-392189346888\",\"text\":\"Q: 哪些写法会导致索引失效,你在项目里踩过哪些坑? - 领域: 数据库 - 难度: 中级 - 考察点: 实战经验 + 对 optimizer 成本判断的理解 - 参考答案要点: 对索引列做函数或运算,如 date(create_time)='2026-10-01'、id+1=10,应改成列单独出现在一侧的范围写法;隐式类型转换,varchar 列写 where phone=13800000000 会把列做 CAST 使索引不可用(varchar→int 才失效,int 列传字符串只截断仍可用);前导 % 的 like '%xx',后置 % 可走索引;or 连接非同一索引的列;在低区分度列(如 status 只有 3 个值)上优化器按成本估算认为回表比全表扫贵,主动放弃索引,可用 force index 验证;联合索引不满足最左前缀;not in / <> / is not null 通常退化为扫描;字符集或 collation 不一致的关联列 - 追问: 为什么 int 列传字符串还能用索引,varcha…(4644 字符)"
+     }
+    },
+    {
+     "title": "面试官",
+     "type": "llm",
+     "status": "succeeded",
+     "elapsed_time": 6.285182,
+     "error": null,
+     "model": {
+      "provider": "langgenius/deepseek/deepseek",
+      "name": "deepseek-flash",
+      "usage": {
+       "prompt_tokens": 4693,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 712,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 5405,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 6.28,
+       "time_to_first_token": 1.626,
+       "time_to_generate": 4.655
+      }
+     },
+     "outputs": {
+      "text": "本轮素材来自两条通道的交叉命中：「知识库检索」给出的 “哪些写法会导致索引失效 / 踩过哪些坑” 与 “date_format 为什么走不了索引” 两道中级题重合，属于同一条知识脉络；「seekdb 工具检索」命中的是同一道题，另外命中一条讲最左前缀的素材，两者没有冲突。证据链在你这次查询的执行计划里是这样走的：\n\n```\n|ID|OPERATOR               |NAME                                                                               |EST.ROWS|EST.TIME(us)|\n|0 |SUBPLAN SCAN           |t                                                                                  |663     |5827        |\n|1 |└─UNION ALL            |                                                                                   |663     |5825        |\n|2 |  ├─TEXT RETRIEVAL SCAN|vect…(1179 字符)",
+      "reasoning_content": "<!--dify-deepseek-reasoning-->用户用\"证据：\"前缀要求出题，且规则8说要把 EXPLAIN 算子树放进代码块，紧跟一行指出 TEXT RETRIEVAL SCAN / VECTOR INDEX SCAN 的对应关系。\n\n按要求：正文最多两段。① 说明素材来自哪条通道、覆盖到什么程度；② 本轮内容（只做一个动作：出题）。\n\n需要放 EXPLAIN 代码块 —— 放在第一段后？格式要求：两段以内。我把代码块放在第一段里或独立。代码块紧跟一行说明。可以第一段写通道说明，第二段出题，代码块可以插在第一段之后——但那样就三段了。可以合并：第一段包含通道说明+代码块+一行映射说明，第二段出题。\n\n只出 1 道题，选最贴合\"哪些写法会导致索引失效\"的那条中级素材。难度是中级。候选人还没答，所以先出题，不要判分。\n\n出题要具体，指向素材考察点。可以要求他分类讲，且预告会追问成本估算。\n\n代码块内容照抄 EXPLAIN。不要写\"检索小结\"、不要提命中数/毫秒数。注意不要提 took_ms、分数。\n\n写作。",
+      "usage": {
+       "prompt_tokens": 4693,
+       "prompt_unit_price": "0",
+       "prompt_price_unit": "0",
+       "prompt_price": "0",
+       "completion_tokens": 712,
+       "completion_unit_price": "0",
+       "completion_price_unit": "0",
+       "completion_price": "0",
+       "total_tokens": 5405,
+       "total_price": "0",
+       "currency": "USD",
+       "latency": 6.28,
+       "time_to_first_token": 1.626,
+       "time_to_generate": 4.655
+      },
+      "finish_reason": "stop"
+     },
+     "inputs": {
+      "#sys.query#": "证据：哪些写法会导致索引失效？",
+      "#1000000000004.text#": "{\"query\":\"哪些写法会导致索引失效？\",\"mode\":\"hybrid\",\"limit\":4,\"took_ms\":22,\"embed_ms\":6,\"results\":[{\"id\":\"453d4421-27e9-4627-91ae-392189346888\",\"text\":\"Q: 哪些写法会导致索引失效,你在项目里踩过哪些坑? - 领域: 数据库 - 难度: 中级 - 考察点: 实战经验 + 对 optimizer 成本判断的理解 - 参考答案要点: 对索引列做函数或运算,如 date(create_time)='2026-10-01'、id+1=10,应改成列单独出现在一侧的范围写法;隐式类型转换,varchar 列写 where phone=13800000000 会把列做 CAST 使索引不可用(varchar→int 才失效,int 列传字符串只截断仍可用);前导 % 的 like '%xx',后置 % 可走索引;or 连接非同一索引的列;在低区分度列(如 status 只有 3 个值)上优化器按成本估算认为回表比全表扫贵,主动放弃索引,可用 force index 验证;联合索引不满足最左前缀;not in / <> / is not null 通常退化为扫描;字符集或 collation 不一致的关联列 - 追问: 为什么 int 列传字符串还能用索引,varcha…(4644 字符)",
+      "#context#": "Q: 哪些写法会导致索引失效,你在项目里踩过哪些坑?\n- 领域: 数据库\n- 难度: 中级\n- 考察点: 实战经验 + 对 optimizer 成本判断的理解\n- 参考答案要点: 对索引列做函数或运算,如 date(create_time)='2026-10-01'、id+1=10,应改成列单独出现在一侧的范围写法;隐式类型转换,varchar 列写 where phone=13800000000 会把列做 CAST 使索引不可用(varchar→int 才失效,int 列传字符串只截断仍可用);前导 % 的 like '%xx',后置 % 可走索引;or 连接非同一索引的列;在低区分度列(如 status 只有 3 个值)上优化器按成本估算认为回表比全表扫贵,主动放弃索引,可用 force index 验证;联合索引不满足最左前缀;not in / <> / is not null 通常退化为扫描;字符集或 collation 不一致的关联列\n- 追问: 为什么 int 列传字符串还能用索引,varchar 列传数字就不能?；优化器基于什么统计信息决定放弃索引,rows 估不准时怎么办?；like '%关键字%' 业务上必须做,你有什么替代方案?\n- 评分标尺: 及格=能列 3 类以上失效写法;良好=区分\"语法上不可用\"和\"成本上被放弃\";优秀=给出 collation 不一致、…(3339 字符)",
+      "model_provider": "langgenius/deepseek/deepseek",
+      "model_name": "deepseek-flash"
+     }
+    },
+    {
+     "title": "回答",
+     "type": "answer",
+     "status": "succeeded",
+     "elapsed_time": 0.000088,
+     "error": null,
+     "outputs": {
+      "answer": "本轮素材来自两条通道的交叉命中：「知识库检索」给出的 “哪些写法会导致索引失效 / 踩过哪些坑” 与 “date_format 为什么走不了索引” 两道中级题重合，属于同一条知识脉络；「seekdb 工具检索」命中的是同一道题，另外命中一条讲最左前缀的素材，两者没有冲突。证据链在你这次查询的执行计划里是这样走的：\n\n```\n|ID|OPERATOR               |NAME                                                                               |EST.ROWS|EST.TIME(us)|\n|0 |SUBPLAN SCAN           |t                                                                                  |663     |5827        |\n|1 |└─UNION ALL            |                                                                                   |663     |5825        |\n|2 |  ├─TEXT RETRIEVAL SCAN|vect…(1299 字符)",
+      "files": []
+     },
+     "inputs": {}
+    }
+   ],
+   "answer": "本轮素材来自两条通道的交叉命中：「知识库检索」给出的 “哪些写法会导致索引失效 / 踩过哪些坑” 与 “date_format 为什么走不了索引” 两道中级题重合，属于同一条知识脉络；「seekdb 工具检索」命中的是同一道题，另外命中一条讲最左前缀的素材，两者没有冲突。证据链在你这次查询的执行计划里是这样走的：\n\n```\n|ID|OPERATOR               |NAME                                                                               |EST.ROWS|EST.TIME(us)|\n|0 |SUBPLAN SCAN           |t                                                                                  |663     |5827        |\n|1 |└─UNION ALL            |                                                                                   |663     |5825        |\n|2 |  ├─TEXT RETRIEVAL SCAN|vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node(fulltext_index_for_col_text)|155     |4563        |\n|3 |  └─VECTOR INDEX SCAN  |vector_index_93bbd4ee_a5f2_48e4_aefc_f5215989f38a_node(vector_index)               |508     |1261        |\n```\n\n第 2 行的 TEXT RETRIEVAL SCAN 走 fulltext_index_for_col_text（ik 全文倒排），第 3 行的 VECTOR INDEX SCAN 走 vector_index（HNSW）；这里两条通道的结果都返回了，整体覆盖面够出中级题。\n\n下面开始出题，这轮只出这一道：请把会导致索引失效的写法按类别说清楚，至少 3 类，并每类给出改写方向。我关注两件事：一是你能不能说清某一类失效的原因，是列上被套了表达式后有序性被破坏，还是隐式类型转换让列做了 CAST；二是你能不能把“语法上根本无法使用索引”和“优化器在成本上主动放弃索引”这两件事分开说，后一类请举一个低区分度列的例子，并说明怎么验证。说完我会顺着优化器的统计信息往下追问。\n\n检索小结｜seekdb 模式=混合(ik全文+HNSW向量+RRF)｜知识库节点命中=5 块｜自研工具命中=4 块｜工具端到端耗时=22 ms（其中 query embedding 6 ms）｜融合=RRF K=60 recall=20",
+   "events": [
+    {
+     "event": "workflow_finished",
+     "status": "succeeded",
+     "error": null,
+     "elapsed_time": 6.636071332000029
+    }
+   ],
+   "workflow_run_id": "f951ecd3-afc4-4844-8ec9-cc4ab0d74305",
+   "message_end": {
+    "answer": "",
+    "metadata": {}
+   },
+   "summary": {
+    "知识库检索": {
+     "hits": 5,
+     "top_score": "15.430",
+     "titles": [
+      "01-数据库原理与InnoDB",
+      "02-SQL实战与优化",
+      "09-项目深挖",
+      "02-SQL实战与优化",
+      "04-计算机网络"
+     ],
+     "elapsed_time": 0.101906
+    },
+    "seekdb工具": {
+     "hits": 4,
+     "mode": "hybrid",
+     "took_ms": 22,
+     "embed_ms": 6,
+     "has_explain": true,
+     "top_channels": [
+      "fts:1,vec:1 rrf=0.03279",
+      "fts:2,vec:2 rrf=0.03226",
+      "fts:7,vec:5 rrf=0.03031",
+      "fts:3,vec:16 rrf=0.02903"
+     ],
+     "elapsed_time": 0.053638
+    },
+    "生效模式": "混合检索（ik 全文 + HNSW 向量 + RRF 融合）",
+    "answer_length": 1299
+   }
+  }
+ ]
+}
