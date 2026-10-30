@@ -2,6 +2,8 @@
 
 2026 OceanBase 数据库大赛 · 赛题二「Dify AI Agent（Just For Fun）」参赛交付物。
 
+> 提交位置：仓库 [powercontext](https://github.com/cike112233/powercontext)，分支 **`dify-seekdb-interview-coach`**，作品目录 `dify/`（本目录）。交付形态为代码仓库 + DSL，不依赖任何在线站点。
+
 一句话：**一个跑在本地 Dify 上的技术面试陪练 Chatflow，它的知识库向量、全文索引和检索执行计划都来自真实运行的 seekdb 实例**，评委可以在自己的机器上从零复现，并且能在对话里直接索取 seekdb 的 `EXPLAIN` 算子树作为证据。
 
 ## 1. 三件事先说清楚
